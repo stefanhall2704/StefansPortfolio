@@ -1,6 +1,6 @@
 import React from "react";
 import Sidebar from "react-sidebar";
-
+import { useInView } from 'react-intersection-observer';
 
 
 const ListItem = (props) => {
@@ -19,6 +19,41 @@ const ListItem = (props) => {
     </a>
   );
 };
+
+const Name = () => {
+  return (
+    <div className='flex justify-center'>
+      <h1 className='text-6xl'>Stefan Hall</h1>
+    </div>
+  )
+
+}
+
+const JobTitle = () => {
+  return (
+    <div className='flex justify-center'>
+      <h1 className="font-serif text-white text-xl">Site Reliability Engineer</h1> 
+    </div>
+  )
+
+}
+
+const Info = () => {
+  const { ref, inView } = useInView({ threshold: 0.5 });
+  const translateClass = inView ? 'translate-x-0 duration-1000' : 'translate-x-full duration-1000';
+  return (
+    <div
+      ref={ref}
+      className={`w-2/5 h-64 flex flex-col justify-around mt-36 mx-auto transform skew-x-12 bg-gray-400 transition-transform duration-500 ease-out ${translateClass} shadow-xl`}
+      style={{ boxShadow: '-40px 40px 0px 0px rgba(0, 0, 0, 0.75)' }}
+    >
+      <Name />
+      <JobTitle />
+    </div>
+  );
+}
+
+
 
 const ExternalSidebarContent = (props) => {
   const { items, collapsed } = props;
@@ -91,7 +126,6 @@ class App extends React.Component {
       {
         link: "https://www.freecodecamp.org/stefan_hall",
         icon: "fa-brands fa-free-code-camp text-4xl",
-
         text: "Free Code Camp",
       },
       {
@@ -130,14 +164,9 @@ class App extends React.Component {
           <div className={`${sidebarWidth}} ${this.state.collapsed ? 'transition-width duration-200' : 'transition-width duration-200'}`}></div>
         </header>
         <div id="main" className={`${this.state.collapsed ? 'ml-20 duration-200' : 'ml-54 duration-200'}`}>
-          <p>Main Content</p>
+          <Info />
         </div>
       </div>
-
-
-
-
-
       </Sidebar>
     );
   }
