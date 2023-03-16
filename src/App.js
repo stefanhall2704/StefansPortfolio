@@ -44,14 +44,59 @@ const Info = () => {
   return (
     <div
       ref={ref}
-      className={`w-2/5 h-64 flex flex-col justify-around mt-36 mx-auto transform skew-x-12 bg-gray-400 transition-transform duration-500 ease-out ${translateClass} shadow-xl`}
+      className={`w-2/5 h-64 flex flex-col justify-around mt-36 mx-auto transform skew-x-12 bg-gray-400 transition-transform duration-500 ease-out ${translateClass} shadow-xl hover:shadow-2xl hover:scale-105 z-10`}
       style={{ boxShadow: '-40px 40px 0px 0px rgba(0, 0, 0, 0.75)' }}
     >
       <Name />
       <JobTitle />
     </div>
   );
+};
+
+const BlogName = () => {
+  return (
+    <div className='flex justify-center'>
+      <a href='https://stefhall2704.pythonanywhere.com' className='text-6xl'>Stefans Blog</a>
+    </div>
+  )
 }
+
+const BlogDescription = () => {
+  return (
+    <div className='flex justify-center'>
+      <p className='ml-5' >
+        This is a multi-user blog site that with a sleek design and with bright colors. I used Django as the backend of this website.
+      </p>
+    </div>
+  )
+}
+
+
+const Blog = () => {
+  const { ref, inView } = useInView({ threshold: 0.5 });
+  const translateClass = inView
+    ? 'translate-x-1/2 translate-y-1/2 duration-1000'
+    : 'translate-x-full translate-y-full duration-1000';
+  const skewClass = inView
+    ? 'skew-x-12'
+    : '';
+  const transitionClass = inView
+    ? 'transition-transform ease-out'
+    : 'transition-transform ease-in';
+
+  return (
+    <div
+      ref={ref}
+      className={`w-2/5 h-64 flex flex-col justify-around mt-36 ml-54 bg-gray-400 ${transitionClass} ${translateClass} ${skewClass} shadow-xl`}
+      style={{ boxShadow: '-40px 40px 0px 0px rgba(0, 0, 0, 0.75)', }}
+    >
+      <BlogName />
+      <BlogDescription />
+    </div>
+  );
+};
+
+
 
 
 
@@ -146,6 +191,7 @@ class App extends React.Component {
     ];
 
     return (
+      <div>
       <Sidebar
         sidebar={
           <ExternalSidebarContent
@@ -158,16 +204,19 @@ class App extends React.Component {
         open={this.state.sidebarOpen}
         onSetOpen={() => this.setState({ sidebarOpen: true })}
         styles={{ sidebar: { background: "gray" } }}
-      >
+      />
       <div className="transition-all duration-500 ease-in-out">
         <header className="text-white gray h-12 shadow-xl">
           <div className={`${sidebarWidth}} ${this.state.collapsed ? 'transition-width duration-200' : 'transition-width duration-200'}`}></div>
         </header>
         <div id="main" className={`${this.state.collapsed ? 'ml-20 duration-200' : 'ml-54 duration-200'}`}>
           <Info />
+          <Blog />
         </div>
       </div>
-      </Sidebar>
+      </div>
+        
+      
     );
   }
 }
