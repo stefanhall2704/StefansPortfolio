@@ -6,3 +6,26 @@
 .sidebar-content.group:hover {
   display: block;
 }
+.gray {
+  background-color: #BDBDBD;
+}
+.example-enter {
+  opacity: 0;
+  transform: translateX(-100%);
+}
+
+.example-enter.example-enter-active {
+  opacity: 1;
+  transform: translateX(0%);
+  transition: opacity 1000ms ease-in-out, transform 1000ms ease-in-out;
+}
+
+.example-leave {
+  opacity: 1;
+  transform: translateX(0%);
+}
+.duration-2000 {
+  transition-duration: 2000ms;
+}
+
+

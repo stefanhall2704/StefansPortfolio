@@ -1,6 +1,8 @@
 import React from "react";
 import Sidebar from "react-sidebar";
 
+
+
 const ListItem = (props) => {
   return (
     <a href={props.link}>
@@ -35,10 +37,11 @@ const ExternalSidebarContent = (props) => {
           <button onClick={props.toggleCollapsed}>
             <i className="fa-solid fa-bars text-4xl"></i>
           </button>
+          <TransitionedContent collapsed={collapsed} />
         </div>
       </div>
       <div className="flex justify-between">
-        <ul className={`flex-col ${collapsed ? "w-full" : ""}`}>
+        <ul className={` flex-col ${collapsed ? "w-full" : ""}`}>
           {items.map((item) => (
             <ListItem
               link={item.link}
@@ -53,6 +56,20 @@ const ExternalSidebarContent = (props) => {
     </div>
   );
 };
+
+const TransitionedContent = (props) => {
+  return (
+    <div
+      id="transitioned"
+      className={`transition-all duration-2000 ease-in-out ${
+        props.collapsed ? "ml-48" : "ml-0"
+      }`}
+    >
+      <p className="text-xl underline font-bold">Stefan</p><p className="text-xl underline font-bold"> Hall</p>
+    </div>
+  );
+};
+
 
 class App extends React.Component {
   constructor(props) {
@@ -69,10 +86,12 @@ class App extends React.Component {
   }
 
   render() {
+    const sidebarWidth = this.state.collapsed ? "ml-20" : "ml-54";
     const items = [
       {
         link: "https://www.freecodecamp.org/stefan_hall",
         icon: "fa-brands fa-free-code-camp text-4xl",
+
         text: "Free Code Camp",
       },
       {
@@ -88,7 +107,7 @@ class App extends React.Component {
       {
         link: "https://codepen.io/stefan_hall",
         icon: "fa-brands fa-codepen text-4xl",
-        text: "CodePen",
+        text:"Codepen",
       },
     ];
 
@@ -106,7 +125,19 @@ class App extends React.Component {
         onSetOpen={() => this.setState({ sidebarOpen: true })}
         styles={{ sidebar: { background: "gray" } }}
       >
-        <div className='ml-20'>Main content</div>
+      <div className="transition-all duration-500 ease-in-out">
+        <header className="text-white gray h-12 shadow-xl">
+          <div className={`${sidebarWidth}} ${this.state.collapsed ? 'transition-width duration-200' : 'transition-width duration-200'}`}></div>
+        </header>
+        <div id="main" className={`${this.state.collapsed ? 'ml-20 duration-200' : 'ml-54 duration-200'}`}>
+          <p>Main Content</p>
+        </div>
+      </div>
+
+
+
+
+
       </Sidebar>
     );
   }
