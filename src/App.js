@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Sidebar from "react-sidebar";
 import { useInView } from 'react-intersection-observer';
 
@@ -11,7 +11,7 @@ const Modal = () => {
   return (
     <div className="flex justify-end mt-5-5 mr-10" >
       <ul className="flex space-x-4 text-white text-sm">
-        <li><button onClick={openModal} className=" text-white focus:outline-none">Contact</button></li>
+        <li><button onClick={openModal} className=" text-white  focus:outline-none">Contact</button></li>
       </ul>
     {isModalOpen && (
       <div className="fixed z-10 inset-0 overflow-y-auto">
@@ -57,11 +57,11 @@ function HeaderBar() {
 
 
   return (
-    <div className="gray_new">
+    <div className="bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex-shrink-0">
-            <h1 className="font-bold text-xl">Stefan Hall's Portfolio</h1>
+            <h1 className="text-white font-bold text-xl">My Awesome App</h1>
           </div>
           <nav className="hidden md:block">
             <ul className="flex space-x-4 text-white text-sm">
@@ -122,39 +122,12 @@ const JobTitle = () => {
 
 const Info = () => {
   const { ref, inView } = useInView({ threshold: 0.5 });
-
-  // State to track the mouse position
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
   const translateClass = inView ? 'translate-x-0 duration-1000' : 'translate-x-full duration-1000';
-
-  // Function to update the mouse position
-  const handleMouseMove = (e) => {
-    const { left, top, width, height } = e.target.getBoundingClientRect();
-    const x = e.clientX - left;
-    const y = e.clientY - top;
-    const xPercent = x / width;
-    const yPercent = y / height;
-    const xOffset = (xPercent - 0.5) * 20;
-    const yOffset = (yPercent - 0.5) * 20;
-    setMousePosition({ x: xOffset, y: yOffset });
-  };
-
-  // Function to reset the mouse position
-  const handleMouseLeave = () => {
-    setMousePosition({ x: 0, y: 0 });
-  };
-
   return (
     <div
       ref={ref}
-      className={`w-2/5 h-64 flex flex-col justify-around mt-52 mx-auto transform skew-x-12 bg-gray-400 transition-transform duration-500 ease-out ${translateClass} shadow-xl z-10`}
-      style={{
-        transform: `rotateX(${mousePosition.y}deg) rotateY(${mousePosition.x}deg)`,
-        boxShadow: '-40px 40px 0px 0px rgba(0, 0, 0, 0.75)',
-      }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+      className={`w-2/5 h-64 flex flex-col justify-around mt-52 mx-auto transform skew-x-12 bg-gray-400 transition-transform duration-500 ease-out ${translateClass} shadow-xl hover:shadow-2xl hover:scale-105 z-10`}
+      style={{ boxShadow: '-40px 40px 0px 0px rgba(0, 0, 0, 0.75)' }}
     >
       <Name />
       <JobTitle />
@@ -327,11 +300,9 @@ class App extends React.Component {
     ];
 
     return (
-      <body>
-        <div className="">
-          <Main items={items} collapsed={this.state.collapsed} toggleCollapsed={this.toggleCollapsed} setCollapsed={(value) => this.setState({ collapsed: value })} />
-        </div>
-      </body>
+      <div className='bg-gray-400' >
+        <Main items={items} collapsed={this.state.collapsed} toggleCollapsed={this.toggleCollapsed} setCollapsed={(value) => this.setState({ collapsed: value })} />
+      </div>
         
       
     );
