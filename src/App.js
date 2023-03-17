@@ -15,7 +15,7 @@ const ListItem = (props) => {
         <span
           className={`opacity-0 transition-opacity duration-200 ease-in-out delay-200 ${
             hideText ? "visible opacity-100" : "invisible"
-          }`}
+          } whitespace-nowrap`}
         >
           {text}
         </span>
@@ -23,6 +23,7 @@ const ListItem = (props) => {
     </li>
   );
 };
+
 
 const Name = () => {
   return (
@@ -102,6 +103,7 @@ const Blog = () => {
 
 const ExternalSidebarContent = (props) => {
   const { items, collapsed } = props;
+
   const sidebarWidth = collapsed ? "12rem" : "3.55rem";
   return (
     <div className="gray h-screen" >
@@ -110,8 +112,8 @@ const ExternalSidebarContent = (props) => {
         collapsed ? "transition-width duration-200" : "transition-width duration-200"
       }`}
       style={{ width: sidebarWidth }}
-      // onMouseEnter={() => props.setCollapsed(false)}
-      // onMouseLeave={() => props.setCollapsed(true)}
+      onMouseEnter={props.toggleCollapsed}
+      onMouseLeave={props.toggleCollapsed}
     >
       <div className="block text-right py-2 px-3">
         <div className="rounded-md overflow-hidden">
@@ -122,7 +124,7 @@ const ExternalSidebarContent = (props) => {
         </div>
       </div>
       <div className="flex justify-between">
-        <ul className={` flex-col ${collapsed ? "w-full" : ""}`}>
+        <ul className={`flex-col ${collapsed ? "w-full" : ""}`}>
           {items.map((item) => (
             <ListItem
               link={item.link}
