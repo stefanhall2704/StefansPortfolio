@@ -122,39 +122,12 @@ const JobTitle = () => {
 
 const Info = () => {
   const { ref, inView } = useInView({ threshold: 0.5 });
-
-  // State to track the mouse position
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
   const translateClass = inView ? 'translate-x-0 duration-1000' : 'translate-x-full duration-1000';
-
-  // Function to update the mouse position
-  const handleMouseMove = (e) => {
-    const { left, top, width, height } = e.target.getBoundingClientRect();
-    const x = e.clientX - left;
-    const y = e.clientY - top;
-    const xPercent = x / width;
-    const yPercent = y / height;
-    const xOffset = (xPercent - 0.5) * 20;
-    const yOffset = (yPercent - 0.5) * 20;
-    setMousePosition({ x: xOffset, y: yOffset });
-  };
-
-  // Function to reset the mouse position
-  const handleMouseLeave = () => {
-    setMousePosition({ x: 0, y: 0 });
-  };
-
   return (
     <div
       ref={ref}
-      className={`w-2/5 h-64 flex flex-col justify-around mt-52 mx-auto transform skew-x-12 bg-gray-400 transition-transform duration-500 ease-out ${translateClass} shadow-xl z-10`}
-      style={{
-        transform: `rotateX(${mousePosition.y}deg) rotateY(${mousePosition.x}deg)`,
-        boxShadow: '-40px 40px 0px 0px rgba(0, 0, 0, 0.75)',
-      }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+      className={`w-2/5 h-64 flex flex-col justify-around mt-52 mx-auto transform skew-x-12 bg-gray-400 transition-transform duration-500 ease-out ${translateClass} shadow-xl hover:shadow-2xl hover:scale-105 z-10`}
+      style={{ boxShadow: '-40px 40px 0px 0px rgba(0, 0, 0, 0.75)' }}
     >
       <Name />
       <JobTitle />
