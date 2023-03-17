@@ -1,22 +1,26 @@
-import React from "react";
+import React, { useState } from "react";
 import Sidebar from "react-sidebar";
 import { useInView } from 'react-intersection-observer';
 
 
 const ListItem = (props) => {
+  const { link, icon, text, hideText, onClick } = props;
   return (
-    <a href={props.link}>
-      <li className="flex items-center h-10 rounded-md group hover:shadow-md hover:rounded-md hover:bg-gray-600 p-2">
-        <i className={`mr-2 ${props.icon}`}></i>
+    <li
+      className="flex items-center h-10 rounded-md group hover:shadow-md hover:rounded-md hover:bg-gray-600 p-2"
+      onClick={onClick}
+    >
+      <a href={link}>
+        <i className={`mr-2 ${icon}`}></i>
         <span
           className={`opacity-0 transition-opacity duration-200 ease-in-out delay-200 ${
-            props.hideText ? "invisible" : "visible opacity-100"
+            hideText ? "visible opacity-100" : "invisible"
           }`}
         >
-          {props.text}
+          {text}
         </span>
-      </li>
-    </a>
+      </a>
+    </li>
   );
 };
 
@@ -44,7 +48,7 @@ const Info = () => {
   return (
     <div
       ref={ref}
-      className={`w-2/5 h-64 flex flex-col justify-around mt-36 mx-auto transform skew-x-12 bg-gray-400 transition-transform duration-500 ease-out ${translateClass} shadow-xl hover:shadow-2xl hover:scale-105 z-10`}
+      className={`w-2/5 h-64 flex flex-col justify-around mt-52 mx-auto transform skew-x-12 bg-gray-400 transition-transform duration-500 ease-out ${translateClass} shadow-xl hover:shadow-2xl hover:scale-105 z-10`}
       style={{ boxShadow: '-40px 40px 0px 0px rgba(0, 0, 0, 0.75)' }}
     >
       <Name />
@@ -56,7 +60,7 @@ const Info = () => {
 const BlogName = () => {
   return (
     <div className='flex justify-center'>
-      <a href='https://stefhall2704.pythonanywhere.com' className='text-6xl'>Stefans Blog</a>
+      <a href='https://stefhall2704.pythonanywhere.com' className='text-6xl'>Stefan's Blog</a>
     </div>
   )
 }
@@ -75,8 +79,8 @@ const BlogDescription = () => {
 const Blog = () => {
   const { ref, inView } = useInView({ threshold: 0.5 });
   const translateClass = inView
-    ? 'translate-x-1/2 translate-y-1/2 duration-1000'
-    : 'translate-x-full translate-y-full duration-1000';
+    ? 'translate-x-1/2 -translate-y-1/2 duration-1000'
+    : 'translate-x-full -translate-y-full duration-1000';
   const skewClass = inView
     ? 'skew-x-12'
     : '';
@@ -87,7 +91,7 @@ const Blog = () => {
   return (
     <div
       ref={ref}
-      className={`w-2/5 h-64 flex flex-col justify-around mt-36 ml-54 bg-gray-400 ${transitionClass} ${translateClass} ${skewClass} shadow-xl`}
+      className={`w-2/5 h-64 flex flex-col justify-around mt-rem-28 bg-slate-200 ${transitionClass} ${translateClass} ${skewClass} shadow-xl`}
       style={{ boxShadow: '-40px 40px 0px 0px rgba(0, 0, 0, 0.75)', }}
     >
       <BlogName />
@@ -96,21 +100,18 @@ const Blog = () => {
   );
 };
 
-
-
-
-
 const ExternalSidebarContent = (props) => {
   const { items, collapsed } = props;
-  const sidebarWidth = collapsed ? "3.55rem" : "12rem";
+  const sidebarWidth = collapsed ? "12rem" : "3.55rem";
   return (
+    <div className="gray h-screen" >
     <div
-      className={`w-48 ml-2 ${
+      className={`w-48${
         collapsed ? "transition-width duration-200" : "transition-width duration-200"
       }`}
       style={{ width: sidebarWidth }}
-      onMouseEnter={() => props.setCollapsed(false)}
-      onMouseLeave={() => props.setCollapsed(true)}
+      // onMouseEnter={() => props.setCollapsed(false)}
+      // onMouseLeave={() => props.setCollapsed(true)}
     >
       <div className="block text-right py-2 px-3">
         <div className="rounded-md overflow-hidden">
@@ -134,6 +135,7 @@ const ExternalSidebarContent = (props) => {
         </ul>
       </div>
     </div>
+    </div>
   );
 };
 
@@ -142,7 +144,7 @@ const TransitionedContent = (props) => {
     <div
       id="transitioned"
       className={`transition-all duration-2000 ease-in-out ${
-        props.collapsed ? "ml-48" : "ml-0"
+        props.collapsed ? "ml-0" : "ml-48"
       }`}
     >
       <p className="text-xl underline font-bold">Stefan</p><p className="text-xl underline font-bold"> Hall</p>
@@ -151,11 +153,38 @@ const TransitionedContent = (props) => {
 };
 
 
+const Main = (props) => {
+  const [collapsed, setCollapsed] = useState(false);
+  
+  const toggleCollapsed = () => {
+  setCollapsed(!collapsed);
+  };
+  
+
+  return (
+  <div id="main">
+    <Sidebar className='bg-gray-400'
+    sidebar={<ExternalSidebarContent items={props.items} collapsed={collapsed} toggleCollapsed={toggleCollapsed} />}
+    docked={!collapsed}
+    open={collapsed}
+    onSetOpen={toggleCollapsed}
+    >
+      <div className="content">
+        <Info />
+        <Blog />
+      </div>
+    </Sidebar>
+  </div>
+  );
+  };
+
+
+
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      sidebarOpen: true,
+      sidebarOpen: false,
       collapsed: true,
     };
     this.toggleCollapsed = this.toggleCollapsed.bind(this);
@@ -164,9 +193,8 @@ class App extends React.Component {
   toggleCollapsed() {
     this.setState((prevState) => ({ collapsed: !prevState.collapsed }));
   }
-
   render() {
-    const sidebarWidth = this.state.collapsed ? "ml-20" : "ml-54";
+    // const sidebarWidth = this.state.collapsed ? "ml-20" : "ml-54";
     const items = [
       {
         link: "https://www.freecodecamp.org/stefan_hall",
@@ -191,29 +219,8 @@ class App extends React.Component {
     ];
 
     return (
-      <div>
-      <Sidebar
-        sidebar={
-          <ExternalSidebarContent
-            items={items}
-            collapsed={this.state.collapsed}
-            toggleCollapsed={this.toggleCollapsed}
-            setCollapsed={(value) => this.setState({ collapsed: value })}
-          />
-        }
-        open={this.state.sidebarOpen}
-        onSetOpen={() => this.setState({ sidebarOpen: true })}
-        styles={{ sidebar: { background: "gray" } }}
-      />
-      <div className="transition-all duration-500 ease-in-out">
-        <header className="text-white gray h-12 shadow-xl">
-          <div className={`${sidebarWidth}} ${this.state.collapsed ? 'transition-width duration-200' : 'transition-width duration-200'}`}></div>
-        </header>
-        <div id="main" className={`${this.state.collapsed ? 'ml-20 duration-200' : 'ml-54 duration-200'}`}>
-          <Info />
-          <Blog />
-        </div>
-      </div>
+      <div className='bg-gray-400' >
+        <Main items={items} collapsed={this.state.collapsed} toggleCollapsed={this.toggleCollapsed} setCollapsed={(value) => this.setState({ collapsed: value })} />
       </div>
         
       
