@@ -27,13 +27,21 @@
 .duration-2000 {
   transition-duration: 2000ms;
 }
-.mt-rem-28 {
-  margin-top: 28rem/* 384px */;
+.mt-rem-38 {
+  margin-top: 46rem;
 }
 
 .gray_new {
   background-color: #BDBDBD;
 }
 .mt-5-5 {
-  margin-top: 1.40rem/* 24px */;
+  margin-top: 1.40rem;
+}
+
+.h-60-rm {
+  height: 50rem; 
+}
+
+.h-30-rm {
+  height: 35;
 }

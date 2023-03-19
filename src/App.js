@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Sidebar from "react-sidebar";
 import { useInView } from 'react-intersection-observer';
 
@@ -9,10 +9,8 @@ const Modal = () => {
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
   return (
-    <div className="flex justify-end mt-5-5 mr-10" >
-      <ul className="flex space-x-4 text-white text-sm">
-        <li><button onClick={openModal} className=" text-white  focus:outline-none">Contact</button></li>
-      </ul>
+    <div className="flex justify-end" >
+      <button onClick={openModal} className="focus:outline-none z-10">Contact</button>
     {isModalOpen && (
       <div className="fixed z-10 inset-0 overflow-y-auto">
         <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -61,23 +59,17 @@ function HeaderBar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex-shrink-0">
-            <h1 className="font-bold text-xl">My Awesome App</h1>
+            <h1 className="font-bold text-xl">Stefan's Portfolio</h1>
           </div>
-          <nav className="hidden md:block">
+          <nav className="md:block">
             <ul className="flex space-x-4 text-white text-sm">
-              <li><a href="#" className="hover:text-gray-300">Home</a></li>
-              <li><a href="#" className="hover:text-gray-300">About</a></li>
-              
+              <li><Modal /></li>
             </ul>
           </nav>
         </div>
       </div>
 </div>)
 }
-
-
-
-
 
 
 const ListItem = (props) => {
@@ -122,11 +114,17 @@ const JobTitle = () => {
 
 const Info = () => {
   const { ref, inView } = useInView({ threshold: 0.5 });
+  const skewClass = inView
+  ? 'skew-x-12'
+  : '';
+  const transitionClass = inView
+  ? 'transition-transform ease-out'
+  : 'transition-transform ease-in';
   const translateClass = inView ? 'translate-x-0 duration-1000' : 'translate-x-full duration-1000';
   return (
     <div
       ref={ref}
-      className={`w-2/5 h-64 flex flex-col justify-around mt-52 mx-auto transform skew-x-12 bg-gray-400 transition-transform duration-500 ease-out ${translateClass} shadow-xl hover:shadow-2xl hover:scale-105 z-10`}
+      className={`w-2/5 h-64 flex flex-col skew justify-around mt-52 mx-auto transform bg-gray-400 transition-transform duration-500 ease-out ${translateClass} ${transitionClass} ${skewClass} shadow-xl hover:shadow-2xl hover:scale-105 z-10`}
       style={{ boxShadow: '-40px 40px 0px 0px rgba(0, 0, 0, 0.75)' }}
     >
       <Name />
@@ -138,17 +136,23 @@ const Info = () => {
 const BlogName = () => {
   return (
     <div className='flex justify-center'>
-      <a href='https://stefhall2704.pythonanywhere.com' className='text-6xl'>Stefan's Blog</a>
+      <a href='https://stefhall2704.pythonanywhere.com' className='text-6xl hover:underline'>Stefan's Blog</a>
     </div>
   )
 }
 
 const BlogDescription = () => {
   return (
-    <div className='flex justify-center'>
-      <p className='ml-5' >
-        This is a multi-user blog site that with a sleek design and with bright colors. I used Django as the backend of this website.
-      </p>
+    <div className='flex justify-center ml-5'>
+      <ul>
+      <li><p>Introduction:<br />As a beginner in software development, I went through various courses and gained certificates in Codecademy, Free Code Camp, and Coursera. However, I found that these courses did not teach me about frameworks. To overcome this, I decided to undertake the Django Girls Tutorial.</p></li>
+      <br />
+      <li><p>Skills and Knowledge:<br />During the tutorial, I gained a solid understanding of the basics of how templating languages work and how to create a multipage web application using Django. I also learned the basics of context variables. Through the tutorial, I was able to apply my newfound knowledge in both front-end and back-end development, allowing me to become a more versatile developer.</p></li>
+      <br />
+      <li><p>Specifics:<br />I used the skills and knowledge I gained to create a personal project that is now part of my portfolio. The project is a blog application where users can view individual blog posts and post comments. I also made sure to add a responsive design to make the application user-friendly.</p></li>
+      <br />
+      <li><p>Conclusion:<br />Overall, the Django Girls Tutorial was a great learning experience that allowed me to improve my skills in software development. Through the tutorial, I was able to create a personal project that showcased my understanding of Django and front-end development. I am proud to have this project as part of my portfolio, and I look forward to applying the skills and knowledge I gained in future projects.</p></li>
+      </ul>
     </div>
   )
 }
@@ -160,7 +164,7 @@ const Blog = () => {
     ? 'translate-x-1/2 -translate-y-1/2 duration-1000'
     : 'translate-x-full -translate-y-full duration-1000';
   const skewClass = inView
-    ? 'skew-x-12'
+    ? '-skew-x-12'
     : '';
   const transitionClass = inView
     ? 'transition-transform ease-out'
@@ -169,7 +173,7 @@ const Blog = () => {
   return (
     <div
       ref={ref}
-      className={`w-2/5 h-64 flex flex-col justify-around mt-rem-28 bg-slate-200 ${transitionClass} ${translateClass} ${skewClass} shadow-xl`}
+      className={` w-6/12 h-30-rm flex flex-col justify-around mt-rem-38 bg-slate-200 ${transitionClass} ${translateClass} ${skewClass} shadow-xl`}
       style={{ boxShadow: '-40px 40px 0px 0px rgba(0, 0, 0, 0.75)', }}
     >
       <BlogName />
@@ -177,6 +181,57 @@ const Blog = () => {
     </div>
   );
 };
+
+
+const DijkstrasAlgorithm = () => {
+  const [rotateX, setRotateX] = React.useState(0);
+  const [rotateY, setRotateY] = React.useState(0);
+  const [gradientX, setGradientX] = React.useState(50);
+  const [gradientY, setGradientY] = React.useState(50);
+
+  const handleMouseMove = (e) => {
+    const div = e.currentTarget;
+    const rect = div.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = div.offsetWidth / 2;
+    const centerY = div.offsetHeight / 2;
+    const deltaX = x - centerX;
+    const deltaY = y - centerY;
+    const rotateX = -deltaY / 10;
+    const rotateY = deltaX / 10;
+    setRotateX(rotateX);
+    setRotateY(rotateY);
+    setGradientX(x / div.offsetWidth * 100);
+    setGradientY(y / div.offsetHeight * 100);
+  };
+
+  const handleMouseLeave = () => {
+    setRotateX(0);
+    setRotateY(0);
+    setGradientX(50);
+    setGradientY(50);
+  };
+
+  return (
+    <div
+      className={`h-60-rm w-7/12 flex justify-center mt-52 mx-auto transform bg-gray-500 transition-transform duration-500 ease-out shadow-xl`}
+      style={{
+        boxShadow: '-40px 40px 0px 0px rgba(0, 0, 0, 0.75)',
+        transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
+        backgroundImage: `linear-gradient(to bottom right, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.2)), radial-gradient(circle at ${gradientX}% ${gradientY}%, #BDBDBD, rgb(107 114 128))`
+
+      }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      <div>
+        <h1 className='text-6xl mt-16'>Dijkstra's Algorithm Visualized</h1>
+      </div>
+    </div>
+  );
+};
+
 
 const ExternalSidebarContent = (props) => {
   const { items, collapsed } = props;
@@ -249,10 +304,12 @@ const Main = (props) => {
     open={collapsed}
     onSetOpen={toggleCollapsed}
     >
+      
       <div className="content">
-      <Modal />
         <Info />
         <Blog />
+        <DijkstrasAlgorithm />
+        <div className='h-54' ></div>
       </div>
     </Sidebar>
   </div>
