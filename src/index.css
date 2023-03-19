@@ -1,13 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import '~@fortawesome/fontawesome-free/css/all.css';
+@import "~@fortawesome/fontawesome-free/css/all.css";
 /* Show sidebar content when hovering over the sidebar */
 .sidebar-content.group:hover {
   display: block;
 }
 .gray {
-  background-color: #BDBDBD;
+  background-color: #bdbdbd;
 }
 .example-enter {
   opacity: 0;
@@ -28,18 +28,18 @@
   transition-duration: 2000ms;
 }
 .mt-rem-38 {
-  margin-top: 46rem;
+  margin-top: 50rem;
 }
 
 .gray_new {
-  background-color: #BDBDBD;
+  background-color: #bdbdbd;
 }
 .mt-5-5 {
-  margin-top: 1.40rem;
+  margin-top: 1.4rem;
 }
 
 .h-60-rm {
-  height: 50rem; 
+  height: 50rem;
 }
 
 .h-30-rm {
