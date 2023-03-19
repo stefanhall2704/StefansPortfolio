@@ -99,8 +99,9 @@ const ListItem = (props) => {
       <a href={link}>
         <i className={`mr-2 ${icon}`}></i>
         <span
-          className={`opacity-0 transition-opacity duration-200 ease-in-out delay-200 ${hideText ? "visible opacity-100" : "invisible"
-            } whitespace-nowrap`}
+          className={`opacity-0 transition-opacity duration-200 ease-in-out delay-200 ${
+            hideText ? "visible opacity-100" : "invisible"
+          } whitespace-nowrap`}
         >
           {text}
         </span>
@@ -241,6 +242,56 @@ const Blog = () => {
   );
 };
 
+const DijkstrasDescription = () => {
+  return (
+    <div className="flex justify-center ml-5">
+      <ul>
+        <li>
+          Introduction:
+          <br />
+          As I delved into algorithmic learning, I sought out challenges to
+          build my skills, starting with small problems like 2 sum and
+          Palindrome on Code Wars. This led me to explore more advanced
+          algorithms like binary search, Branch Sums, and Depth First Search,
+          which provided a foundation for understanding pathfinding algorithms.
+          With so many options to choose from, including DFS, BFS, A* Search,
+          Greedy Best-first Search, and Dijkstra's, I decided to focus on
+          mastering Dijkstra's algorithm in-depth.
+        </li>
+        <li>
+          Skils and Knowledge:
+          <br />
+          To put my knowledge into practice, I challenged myself to build a
+          pathfinding algorithm visualizer using JavaScript. The visualizer
+          enables users to create a canvas of grids and add starting and ending
+          nodes, which then highlights the search in real-time as the algorithm
+          progresses through each "cell" of the grid.
+        </li>
+        <li>
+          Challenges:
+          <br />I had to overcome numerous challenges throughout the development
+          process, including timing the highlighting of squares to ensure it was
+          visible to the human eye, adding a user interface to control the
+          sequence of highlighted cells, and creating blocks that prevented the
+          algorithm from searching in certain cells. These challenges required a
+          significant amount of time and effort, but ultimately allowed me to
+          better understand how Dijkstra's algorithm could be used in a
+          real-world application.
+        </li>
+        <li>
+          Conclusion:
+          <br />
+          Overall, the project provided me with a deeper understanding of
+          Dijkstra's algorithm, allowed me to build my problem-solving
+          abilities, and improved my technical skills in JavaScript. I would
+          highly recommend this project to any aspiring developer seeking to
+          build their skills in algorithmic problem-solving and web development.
+        </li>
+      </ul>
+    </div>
+  );
+};
+
 const DijkstrasAlgorithm = () => {
   const [rotateX, setRotateX] = React.useState(0);
   const [rotateY, setRotateY] = React.useState(0);
@@ -256,8 +307,8 @@ const DijkstrasAlgorithm = () => {
     const centerY = div.offsetHeight / 2;
     const deltaX = x - centerX;
     const deltaY = y - centerY;
-    const rotateX = -deltaY / 10;
-    const rotateY = deltaX / 10;
+    const rotateX = -deltaY / 40;
+    const rotateY = deltaX / 40;
     setRotateX(rotateX);
     setRotateY(rotateY);
     setGradientX((x / div.offsetWidth) * 100);
@@ -283,7 +334,10 @@ const DijkstrasAlgorithm = () => {
       onMouseLeave={handleMouseLeave}
     >
       <div>
-        <h1 className="text-6xl mt-16">Dijkstra's Algorithm Visualized</h1>
+        <h1 className="text-6xl mt-16 flex justify-center">
+          Dijkstra's Algorithm Visualized
+        </h1>
+        <DijkstrasDescription />
       </div>
     </div>
   );
@@ -296,10 +350,11 @@ const ExternalSidebarContent = (props) => {
   return (
     <div className="gray h-screen">
       <div
-        className={`w-48${collapsed
-          ? "transition-width duration-200"
-          : "transition-width duration-200"
-          }`}
+        className={`w-48${
+          collapsed
+            ? "transition-width duration-200"
+            : "transition-width duration-200"
+        }`}
         style={{ width: sidebarWidth }}
         onMouseEnter={props.toggleCollapsed}
         onMouseLeave={props.toggleCollapsed}
@@ -334,8 +389,9 @@ const TransitionedContent = (props) => {
   return (
     <div
       id="transitioned"
-      className={`transition-all duration-2000 ease-in-out ${props.collapsed ? "ml-0" : "ml-48"
-        }`}
+      className={`transition-all duration-2000 ease-in-out ${
+        props.collapsed ? "ml-0" : "ml-48"
+      }`}
     >
       <p className="text-xl underline font-bold">Stefan</p>
       <p className="text-xl underline font-bold"> Hall</p>
