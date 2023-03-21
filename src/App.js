@@ -32,8 +32,8 @@ const Modal = () => {
             <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
-                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <i class="fa-sharp fa-regular fa-address-card"></i>
+                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full  sm:mx-0 sm:h-10 sm:w-10">
+                    <i className="fa-sharp fa-regular fa-address-card text-4xl"></i>
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                     <h3 className="text-lg leading-6 font-medium text-gray-900">
@@ -141,7 +141,7 @@ const Info = () => {
     <div
       ref={ref}
       className={`w-2/5 h-64 flex flex-col skew justify-around mt-52 mx-auto transform red transition-transform duration-500 ease-out ${translateClass} ${transitionClass} ${skewClass} shadow-xl hover:shadow-2xl hover:scale-105 z-10`}
-      style={{ boxShadow: "-40px 40px 0px 0px rgba(0, 0, 0, 0.75)" }}
+      style={{ boxShadow: "-40px 40px 0px 0px rgba(0, 0, 0, 0.5)" }}
     >
       <Name />
       <JobTitle />
@@ -154,7 +154,7 @@ const Story = () => {
   return (
     <div
       className={` w-10/12 h-auto flex flex-col justify-center ml-auto mr-auto mt-56 yellow shadow-xl`}
-      style={{ boxShadow: "-40px 40px 0px 0px rgba(0, 0, 0, 0.75)" }}
+      style={{ boxShadow: "-40px 40px 0px 0px rgba(0, 0, 0, 0.5)" }}
     >
       <div className="ml-5 mb-5 mr-5" >
         <h1 className="text-4xl flex justify-center mt-5">Self-Taught Developer Story</h1>
@@ -344,7 +344,7 @@ const Blog = () => {
   const translateClass = inView
     ? "translate-x-1/2 -translate-y-1/2 duration-1000"
     : "translate-x-full -translate-y-full duration-1000";
-  const skewClass = inView ? "-skew-x-12" : "";
+  const skewClass = inView ? "-skew-x-3" : "";
   const transitionClass = inView
     ? "transition-transform ease-out"
     : "transition-transform ease-in";
@@ -353,7 +353,7 @@ const Blog = () => {
     <div
       ref={ref}
       className={` w-6/12 h-auto flex flex-col justify-around mt-rem-38 red ${transitionClass} ${translateClass} ${skewClass} shadow-xl`}
-      style={{ boxShadow: "-40px 40px 0px 0px rgba(0, 0, 0, 0.75)" }}
+      style={{ boxShadow: "-40px 40px 0px 0px rgba(0, 0, 0, 0.5)" }}
     >
       <BlogName />
       <BlogDescription />
@@ -474,9 +474,9 @@ const DijkstrasAlgorithm = () => {
     <div
       className={`h-auto w-9/12 flex justify-center m-auto transform bg-gray-500 transition-transform duration-500 ease-out shadow-xl`}
       style={{
-        boxShadow: "-40px 40px 0px 0px rgba(0, 0, 0, 0.75)",
+        boxShadow: "-40px 40px 0px 0px rgba(0, 0, 0, 0.5)",
         transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
-        backgroundImage: `linear-gradient(to bottom right, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.2)), radial-gradient(circle at ${gradientX}% ${gradientY}%, #EA738DFF, #1E2761`,
+        backgroundImage: `linear-gradient(to bottom right, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), radial-gradient(circle at ${gradientX}% ${gradientY}%, #EA738DFF, #408EC6`,
       }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -556,7 +556,7 @@ const Main = (props) => {
   };
 
   return (
-    <div id="main">
+    <div id="main" className="font-serif">
       <HeaderBar />
       <Sidebar
         sidebar={
