@@ -28,7 +28,7 @@
   transition-duration: 2000ms;
 }
 .mt-rem-38 {
-  margin-top: 50rem;
+  margin-top: 55rem;
 }
 
 .gray_new {
@@ -42,9 +42,28 @@
   height: 45rem;
 }
 .h-65-rm {
-  height: 75rem;
+  height: 80rem;
 }
 
 .h-30-rm {
-  height: 35;
+  height: 35rem;
+}
+
+.yellow {
+  background-color: #408EC6;
+}
+.sidebar-yellow {
+  background-color: #408EC6; 
+}
+.red {
+  background-color: #EA738DFF;
+}
+.sidebar-yellow:hover {
+  background-color: #1E2761;
+}
+.root-container {
+  height: 100vh; /* make the root container take up the full viewport height */
+  display: flex;
+  flex-direction: column;
+  background-color: #1E2761;
 }

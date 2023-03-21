@@ -55,7 +55,7 @@ const Modal = () => {
                 <button
                   onClick={closeModal}
                   type="button"
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gray-400 text-base font-medium text-white hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gray-400 text-base font-medium text-white hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-300 sm:ml-3 sm:w-auto sm:text-sm"
                 >
                   Close
                 </button>
@@ -70,14 +70,14 @@ const Modal = () => {
 
 function HeaderBar() {
   return (
-    <div className="gray_new">
+    <div className="yellow">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex-shrink-0">
-            <h1 className="font-bold text-xl text-white">Stefan's Portfolio</h1>
+            <h1 className="text-4xl">Stefan's Portfolio</h1>
           </div>
           <nav className="md:block">
-            <ul className="flex space-x-4 text-white text-sm">
+            <ul className="flex space-x-4 text-sm">
               <li>
                 <Modal />
               </li>
@@ -93,7 +93,7 @@ const ListItem = (props) => {
   const { link, icon, text, hideText, onClick } = props;
   return (
     <li
-      className="flex items-center h-10 rounded-md group hover:shadow-md hover:rounded-md hover:bg-gray-600 p-2"
+      className="flex items-center h-10 rounded-md group hover:shadow-md hover:rounded-md sidebar-yellow p-2"
       onClick={onClick}
     >
       <a href={link}>
@@ -113,7 +113,7 @@ const ListItem = (props) => {
 const Name = () => {
   return (
     <div className="flex justify-center">
-      <h1 className="text-6xl">Stefan Hall</h1>
+      <h1 className="text-4xl">Stefan Hall</h1>
     </div>
   );
 };
@@ -121,7 +121,7 @@ const Name = () => {
 const JobTitle = () => {
   return (
     <div className="flex justify-center">
-      <h1 className="font-serif text-white text-xl">
+      <h1 className="text-xl">
         Site Reliability Engineer
       </h1>
     </div>
@@ -140,7 +140,7 @@ const Info = () => {
   return (
     <div
       ref={ref}
-      className={`w-2/5 h-64 flex flex-col skew justify-around mt-52 mx-auto transform bg-gray-400 transition-transform duration-500 ease-out ${translateClass} ${transitionClass} ${skewClass} shadow-xl hover:shadow-2xl hover:scale-105 z-10`}
+      className={`w-2/5 h-64 flex flex-col skew justify-around mt-52 mx-auto transform red transition-transform duration-500 ease-out ${translateClass} ${transitionClass} ${skewClass} shadow-xl hover:shadow-2xl hover:scale-105 z-10`}
       style={{ boxShadow: "-40px 40px 0px 0px rgba(0, 0, 0, 0.75)" }}
     >
       <Name />
@@ -153,12 +153,12 @@ const Story = () => {
 
   return (
     <div
-      className={` w-10/12 h-65-rm flex flex-col justify-center ml-40 mt-56 bg-slate-300  shadow-xl`}
+      className={` w-10/12 h-auto flex flex-col justify-center ml-auto mr-auto mt-56 yellow shadow-xl`}
       style={{ boxShadow: "-40px 40px 0px 0px rgba(0, 0, 0, 0.75)" }}
     >
-      <div className="ml-5" >
-        <h1 className="text-6xl flex justify-center">Self-Taught Developer Story</h1>
-        <p>
+      <div className="ml-5 mb-5 mr-5" >
+        <h1 className="text-4xl flex justify-center mt-5">Self-Taught Developer Story</h1>
+        <p className='mt-10'>
           In 2019, I was a Supervisor at a Insulated Metal Panel (IMP) plant.
           And along with the daily tasks I had, along the way, I found different
           tasks that should absolutely be automated. So with not knowing
@@ -178,7 +178,7 @@ const Story = () => {
           helping with inventory. <br /><br /> After this I was absolutely hooked into
           tech! I went on to take an attempt on a Coursera course,{" "}
           <a href="https://www.coursera.org/account/accomplishments/verify/2FN2YFQEH3BM">
-            Programming Foundations with JavaScript, HTML and CSS
+            <strong><em className='hover:underline'>Programming Foundations with JavaScript, HTML and CSS</em></strong>
           </a>
           . I completed this course with honors. And after this. I took a little
           bit of a break from tech. Than about 8 months later, I found an old
@@ -186,11 +186,12 @@ const Story = () => {
           was currently an Automation Integration Engineer at CFA Institute. So
           I reached out to him about my interest in tech. And he really helped
           me with his mentorship along the way. <br /><br />
-          <h1>Mentorship:</h1>
+          <h1 className='text-xl' >Mentorship:</h1>
+          <br />
           As being a mentee, I went along with numerous suggested tasks provided
           by my mentor. This started out with earning a certificate in{" "}
           <a href="https://www.codecademy.com/profiles/stefhall2704/certificates/6c152bd262967f8c941c9707ed636bda">
-            Python with codecademy
+          <strong><em className='hover:underline'>Python with codecademy</em></strong>
           </a>
           . This really helped me learn more of the basics in programming. For
           loops, if statements, while loops, OOP, etc. On completion of this
@@ -199,13 +200,13 @@ const Story = () => {
           simple challenge I would have in a long time. My next task, was to use
           free code camp to earn a certificate in{" "}
           <a href="https://www.freecodecamp.org/certification/stefan_hall/responsive-web-design">
-            Responsive Web Design
+          <strong><em className='hover:underline'>Responsive Web Design</em></strong>
           </a>
           . This really helped me dig more into web design, which is very
           important in full stack development. With my previous knowledge of
           Python, I went down the route of learning{" "}
           <a href="https://www.freecodecamp.org/certification/stefan_hall/data-analysis-with-python-v7">
-            Data Analysis with Python
+          <strong><em className='hover:underline'>Data Analysis with Python</em></strong>
           </a>
           . This really showed me a lot of new challenges, using numpy, pandas,
           with Jupyter Notebooks. But really helped me learn that a programming
@@ -258,25 +259,29 @@ const Story = () => {
 
 const BlogName = () => {
   return (
-    <div className="flex justify-center">
+    <div className="flex justify-center mt-5">
+      <h1>
       <a
         href="https://stefhall2704.pythonanywhere.com"
-        className="text-6xl hover:underline"
+        className="text-4xl hover:underline"
       >
         Stefan's Blog
-      </a>
+      </a></h1>
     </div>
   );
 };
 
 const BlogDescription = () => {
   return (
-    <div className="flex justify-center ml-5">
+    <div className="flex justify-center ml-5 mb-5 mr-5">
       <ul>
         <li>
-          <p>
+          
+            <h1 className='text-xl' >
             Introduction:
+            </h1>
             <br />
+            <p>
             As a beginner in software development, I went through various
             courses and gained certificates in Codecademy, Free Code Camp, and
             Coursera. However, I found that these courses did not teach me about
@@ -286,9 +291,11 @@ const BlogDescription = () => {
         </li>
         <br />
         <li>
-          <p>
+            <h1 className='text-xl' > 
             Skills and Knowledge:
+            </h1>
             <br />
+            <p>
             During the tutorial, I gained a solid understanding of the basics of
             how templating languages work and how to create a multipage web
             application using Django. I also learned the basics of context
@@ -299,9 +306,12 @@ const BlogDescription = () => {
         </li>
         <br />
         <li>
-          <p>
+          <h1 className='text-xl' > 
             Specifics:
-            <br />I used the skills and knowledge I gained to create a personal
+            </h1>
+            <br />
+            <p>
+            I used the skills and knowledge I gained to create a personal
             project that is now part of my portfolio. The project is a blog
             application where users can view individual blog posts and post
             comments. I also made sure to add a responsive design to make the
@@ -310,9 +320,11 @@ const BlogDescription = () => {
         </li>
         <br />
         <li>
-          <p>
+            <h1 className='text-xl' > 
             Conclusion:
+            </h1>
             <br />
+            <p>
             Overall, the Django Girls Tutorial was a great learning experience
             that allowed me to improve my skills in software development.
             Through the tutorial, I was able to create a personal project that
@@ -340,7 +352,7 @@ const Blog = () => {
   return (
     <div
       ref={ref}
-      className={` w-6/12 h-30-rm flex flex-col justify-around mt-rem-38 bg-slate-200 ${transitionClass} ${translateClass} ${skewClass} shadow-xl`}
+      className={` w-6/12 h-auto flex flex-col justify-around mt-rem-38 red ${transitionClass} ${translateClass} ${skewClass} shadow-xl`}
       style={{ boxShadow: "-40px 40px 0px 0px rgba(0, 0, 0, 0.75)" }}
     >
       <BlogName />
@@ -351,12 +363,14 @@ const Blog = () => {
 
 const DijkstrasDescription = () => {
   return (
-    <div className="flex justify-center ml-5">
+    <div className="flex justify-center ml-5 mb-5 mr-5">
       <ul>
         <li>
-          <p>
+          <h1 className='text-xl' >
             Introduction:
+            </h1>
             <br />
+            <p>
             As I delved into algorithmic learning, I sought out challenges to
             build my skills, starting with small problems like 2 sum and
             Palindrome on Code Wars. This led me to explore more advanced
@@ -369,9 +383,12 @@ const DijkstrasDescription = () => {
         </li>
         <br />
         <li>
-          <p>
+          
+          <h1 className='text-xl' >
             Skils and Knowledge:
+            </h1>
             <br />
+            <p>
             To put my knowledge into practice, I challenged myself to build a
             pathfinding algorithm visualizer using JavaScript. The visualizer
             enables users to create a canvas of grids and add starting and
@@ -381,9 +398,12 @@ const DijkstrasDescription = () => {
         </li>
         <br />
         <li>
-          <p>
+            <h1 className='text-xl' >
             Challenges:
-            <br />I had to overcome numerous challenges throughout the
+            </h1>
+            <br />
+            <p>
+            I had to overcome numerous challenges throughout the
             development process, including timing the highlighting of squares to
             ensure it was visible to the human eye, adding a user interface to
             control the sequence of highlighted cells, and creating blocks that
@@ -395,9 +415,11 @@ const DijkstrasDescription = () => {
         </li>
         <br />
         <li>
-          <p>
+            <h1 className='text-xl' >
             Conclusion:
+            </h1>
             <br />
+            <p>
             Overall, the project provided me with a deeper understanding of
             Dijkstra's algorithm, allowed me to build my problem-solving
             abilities, and improved my technical skills in JavaScript. I would
@@ -432,7 +454,14 @@ const DijkstrasAlgorithm = () => {
     setRotateY(rotateY);
     setGradientX((x / div.offsetWidth) * 100);
     setGradientY((y / div.offsetHeight) * 100);
+  
+    // Calculate shadow offsets based on rotation angles
+    const shadowX = Math.round(-rotateY * 2);
+    const shadowY = Math.round(rotateX * 2);
+    const shadow = `${shadowX}px ${shadowY}px 0px 0px rgba(0, 0, 0, 0.75)`;
+    div.style.boxShadow = shadow;
   };
+  
 
   const handleMouseLeave = () => {
     setRotateX(0);
@@ -443,22 +472,23 @@ const DijkstrasAlgorithm = () => {
 
   return (
     <div
-      className={`h-60-rm w-7/12 flex justify-center mt-46 mx-auto transform bg-gray-500 transition-transform duration-500 ease-out shadow-xl`}
+      className={`h-auto w-9/12 flex justify-center m-auto transform bg-gray-500 transition-transform duration-500 ease-out shadow-xl`}
       style={{
         boxShadow: "-40px 40px 0px 0px rgba(0, 0, 0, 0.75)",
         transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
-        backgroundImage: `linear-gradient(to bottom right, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.2)), radial-gradient(circle at ${gradientX}% ${gradientY}%, #BDBDBD, rgb(107 114 128))`,
+        backgroundImage: `linear-gradient(to bottom right, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.2)), radial-gradient(circle at ${gradientX}% ${gradientY}%, #EA738DFF, #1E2761`,
       }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
       <div>
+        <h1>
         <a
           href="https://codepen.io/stefan_hall/full/JjBKWbL"
-          className="text-6xl mt-16 flex justify-center hover:underline"
+          className="text-4xl mt-5 flex justify-center hover:underline"
         >
           Dijkstra's Algorithm Visualized
-        </a>
+        </a></h1>
         <DijkstrasDescription />
       </div>
     </div>
@@ -470,7 +500,7 @@ const ExternalSidebarContent = (props) => {
 
   const sidebarWidth = collapsed ? "12rem" : "3.55rem";
   return (
-    <div className="gray h-screen">
+    <div className="yellow h-screen">
       <div
         className={`w-48${
           collapsed
@@ -483,9 +513,6 @@ const ExternalSidebarContent = (props) => {
       >
         <div className="block text-right py-2 px-3">
           <div className="rounded-md overflow-hidden">
-            <button onClick={props.toggleCollapsed}>
-              <i className="fa-solid fa-bars text-4xl"></i>
-            </button>
             <TransitionedContent collapsed={collapsed} />
           </div>
         </div>
@@ -532,7 +559,6 @@ const Main = (props) => {
     <div id="main">
       <HeaderBar />
       <Sidebar
-        className="bg-gray-400"
         sidebar={
           <ExternalSidebarContent
             items={props.items}
@@ -596,7 +622,7 @@ class App extends React.Component {
 
     return (
       <body>
-        <div className="">
+        <div className='root-container'>
           <Main
             items={items}
             collapsed={this.state.collapsed}
