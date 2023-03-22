@@ -130,17 +130,17 @@ const JobTitle = () => {
 
 const Info = () => {
   const { ref, inView } = useInView({ threshold: 0.5 });
-  const skewClass = inView ? "skew-x-12" : "";
+  const skewClass = inView ? "skew-x-6" : "";
   const transitionClass = inView
     ? "transition-transform ease-out"
     : "transition-transform ease-in";
-  const translateClass = inView
-    ? "translate-x-0 duration-1000"
+    const translateClass = inView
+    ? "translate-x-1/2 duration-1000"
     : "translate-x-full duration-1000";
   return (
     <div
       ref={ref}
-      className={`w-2/5 h-64 flex flex-col skew justify-around mt-52 mx-auto transform red transition-transform duration-500 ease-out ${translateClass} ${transitionClass} ${skewClass} shadow-xl hover:shadow-2xl hover:scale-105 z-10`}
+      className={`w-2/5 h-64 flex flex-col skew justify-around mt-52 ml-36 transform red transition-transform duration-500 ease-out ${translateClass} ${transitionClass} ${skewClass} shadow-xl hover:shadow-2xl hover:scale-105 z-10`}
       style={{ boxShadow: "-40px 40px 0px 0px rgba(0, 0, 0, 0.5)" }}
     >
       <Name />
@@ -342,9 +342,9 @@ const BlogDescription = () => {
 const Blog = () => {
   const { ref, inView } = useInView({ threshold: 0.5 });
   const translateClass = inView
-    ? "translate-x-1/2 -translate-y-1/2 duration-1000"
-    : "translate-x-full -translate-y-full duration-1000";
-  const skewClass = inView ? "-skew-x-3" : "";
+    ? "translate-x-1/2 duration-1000"
+    : "translate-x-full duration-1000";
+  const skewClass = inView ? "-skew-x-6" : "";
   const transitionClass = inView
     ? "transition-transform ease-out"
     : "transition-transform ease-in";
@@ -352,7 +352,7 @@ const Blog = () => {
   return (
     <div
       ref={ref}
-      className={` w-6/12 h-auto flex flex-col justify-around mt-rem-38 red ${transitionClass} ${translateClass} ${skewClass} shadow-xl`}
+      className={` w-6/12 h-auto flex flex-col mt-36 red ${transitionClass} ${translateClass} ${skewClass} shadow-xl`}
       style={{ boxShadow: "-40px 40px 0px 0px rgba(0, 0, 0, 0.5)" }}
     >
       <BlogName />
@@ -458,7 +458,7 @@ const DijkstrasAlgorithm = () => {
     // Calculate shadow offsets based on rotation angles
     const shadowX = Math.round(-rotateY * 2);
     const shadowY = Math.round(rotateX * 2);
-    const shadow = `${shadowX}px ${shadowY}px 0px 0px rgba(0, 0, 0, 0.75)`;
+    const shadow = `${shadowX}px ${shadowY}px 0px 0px rgba(0, 0, 0, 0.25)`;
     div.style.boxShadow = shadow;
   };
   
@@ -472,7 +472,7 @@ const DijkstrasAlgorithm = () => {
 
   return (
     <div
-      className={`h-auto w-9/12 flex justify-center m-auto transform bg-gray-500 transition-transform duration-500 ease-out shadow-xl`}
+      className={`h-auto w-7/12 flex justify-center mt-36 m-auto transform bg-gray-500 transition-transform duration-500 ease-out shadow-xl`}
       style={{
         boxShadow: "-40px 40px 0px 0px rgba(0, 0, 0, 0.5)",
         transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
@@ -494,6 +494,86 @@ const DijkstrasAlgorithm = () => {
     </div>
   );
 };
+
+const FileControlName = () => {
+  return (
+    <div>
+      <h1 className='flex justify-center mt-5 text-4xl hover:underline'><a href='https://github.com/stefanhall2704/FileControl'>File Control with Rust</a></h1>
+    </div>
+  )
+}
+
+const FileControlDescription = () => {
+  return (
+    <div className="flex justify-center ml-5 mb-5 mr-5">
+      <ul>
+        <li>
+          
+            <h1 className='text-xl' >
+            Introduction:
+            </h1>
+            <br />
+            <p>
+              With my recent experience in Software Engineering, I took on the challenge of learning the Rust programming language. During the time of learning Rust, I wanted to take on the challenge of learning how to upload and download files to and from a database. 
+          </p>
+        </li>
+        <br />
+        <li>
+            <h1 className='text-xl' > 
+            Skills and Knowledge:
+            </h1>
+            <br />
+            <p>
+              During the time of learning Rust, I had to learn a framework, which I chose Rocket, I chose this due to the similarities that it has with Python's FastAPI and Flask. And I also chose Diesel ORM to interact with the database. And the database of choice was, SQLite. With all of these new skills, it brought a lot of challenges along the way. Learning the different data types that I can utilize in Rust. How to break down a binary file into bytes, and upload it to the database, etc.
+            </p>
+        </li>
+        <br />
+        <li>
+          <h1 className='text-xl' > 
+            Specifics:
+            </h1>
+            <br />
+            <p>
+              This project involoved, taking in a Binary file into bytes, extracting the content type of the file, and taking in a parameter of the file name. And finally, uploading all those attributes to the SQLite database. The second part of this project, is to take in a parameter of an ID. With that parameter, it will take the file, decode it, take the file name, and download it to the users <em>Downloads</em> directory.
+          </p>
+        </li>
+        <br />
+        <li>
+            <h1 className='text-xl' > 
+            Conclusion:
+            </h1>
+            <br />
+            <p>
+              After gaining all this knowledge and learning Rust, I found that controlling the memory of my program, gives me a lot more control of what I want to do. Controlling specific types, and learning how the take advantage of the borrow checker and ownership throughout my application and how it can really ensure a secure application, with near native speeds. I absolutely love this project more than the rest, and am really wanting to dive into Rust even more. And would suggest this to anyone in the tech industry.
+            </p>
+        </li>
+      </ul>
+    </div>
+  );
+};
+
+const FileControl = () => {
+  const { ref, inView } = useInView({ threshold: 0.5 });
+  const translateClass = inView
+    ? "translate-x-1/2 duration-1000"
+    : "translate-x-full duration-1000";
+  const skewClass = inView ? "skew-x-6" : "";
+  const transitionClass = inView
+    ? "transition-transform ease-out"
+    : "transition-transform ease-in";
+
+  return (
+    <div
+      ref={ref}
+      className={` w-6/12 h-auto flex flex-col mt-36 red ${transitionClass} ${translateClass} ${skewClass} shadow-xl`}
+      style={{ boxShadow: "-40px 40px 0px 0px rgba(0, 0, 0, 0.5)" }}
+    >
+      <FileControlName />
+      <FileControlDescription />
+    </div>
+  );
+};
+
 
 const ExternalSidebarContent = (props) => {
   const { items, collapsed } = props;
@@ -575,6 +655,7 @@ const Main = (props) => {
           <Story />
           <Blog />
           <DijkstrasAlgorithm />
+          <FileControl />
           <div className="h-54"></div>
         </div>
       </Sidebar>
