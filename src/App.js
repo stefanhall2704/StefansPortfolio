@@ -140,7 +140,7 @@ const Info = () => {
   return (
     <div
       ref={ref}
-      className={`w-2/5 h-64 flex flex-col skew justify-around mt-52 ml-36 transform red transition-transform duration-500 ease-out ${translateClass} ${transitionClass} ${skewClass} shadow-xl hover:shadow-2xl hover:scale-105 z-10`}
+      className={`w-2/5 h-64 flex flex-col skew justify-around mt-52 ml-36 transform red transition-transform duration-500 ease-out ${translateClass} ${transitionClass} ${skewClass} shadow-xl `}
       style={{ boxShadow: "-40px 40px 0px 0px rgba(0, 0, 0, 0.5)" }}
     >
       <Name />
@@ -574,6 +574,84 @@ const FileControl = () => {
   );
 };
 
+const ChangeManagementApplicationName = () => {
+  return (
+    <div>
+      <h1 className='flex justify-center mt-5 text-4xl hover:underline'>DREW</h1>
+    </div>
+  )
+}
+
+const ChangeManagementApplicationDescription = () => {
+  return (
+    <div className="flex justify-center ml-5 mb-5 mr-5">
+      <ul>
+        <li>
+          
+            <h1 className='text-xl' >
+            Introduction:
+            </h1>
+            <br />
+            <p>
+              DREW is a Cloud Native Change Management Application for the company's website changes. This is deeply integrated with Atlassian tools, such as Jira and Bitbucket. Integrations also made with N8N, which help for automated emails. Other integrations include ADO and Octopus for automatic deployment for branching octopus projects on specified versions that are based off of DREW. With this being said, the automated deployments and pipeline runs in ADO with corresponding repositories, can make life very easy for devops and product owners. At this level of automation, it really helps save the time and money to concentrate on other levels of automation to reduce toil.
+            </p>
+        </li>
+        <br />
+        <li>
+            <h1 className='text-xl' > 
+            Skills and Knowledge:
+            </h1>
+            <br />
+            <p>
+              DREW uses a fairly modern Python framework, FastAPI. This framework really allowed us to have quick developments to create APIs, control authentication for specific levels of access per user within the APIs, and also have swagger docs that come with the FastAPI framework. Throughout this project, I really honed in on my Python skills. And gained a lot of knowledge of SQLalchemy ORM, FastAPI framework, and SQLite database. This really allowed me to take my development skills to the next level. Learning the ins and outs of deeply integrated tooling, how to let an ORM really help the speed of my development of creating APIs increase 10 folds, and really gained knowledge on how to render html with context variables (using Jinja2 templating language) and controlling the data in the front end very easily. 
+            </p>
+        </li>
+        <br />
+        <li>
+          <h1 className='text-xl' > 
+            Specifics:
+            </h1>
+            <br />
+            <p>
+              I cannot go into too many specifics, being this is an internal application. There were a few approaches that were taken in this application. Specifically in the frontend, there was a macros.html page that was created, in order to create buttons, modals, etc. We were able to pass in parameters to reuse throughout the application, where the parameters would change the name, the color, and functionality of the button(s) themselves.    
+            </p>
+        </li>
+        <br />
+        <li>
+            <h1 className='text-xl' > 
+            Conclusion:
+            </h1>
+            <br />
+            <p>
+              This application really helped me learn the ins and outs of creating a new and professional web application from the ground up. But not only that, I really gained a lot of knowledge on how a company deploys there code, down to the level of creating pipelines that are automatically ran when an octopus project is branched, also to the level of using Azure to occasionally swap slots, and Octopus to have automatic rollbacks for when code commits break production. After gaining this knowledge, I also gained a lot of confidence in myself to take on difficult tasks and go through what I need to and run with it. 
+            </p>
+        </li>
+      </ul>
+    </div>
+  );
+};
+
+const ChangeManagementApplication = () => {
+  const { ref, inView } = useInView({ threshold: 0.5 });
+  const translateClass = inView
+    ? "translate-x-1/2 duration-1000"
+    : "translate-x-full duration-1000";
+  const skewClass = inView ? "-skew-x-6" : "";
+  const transitionClass = inView
+    ? "transition-transform ease-out"
+    : "transition-transform ease-in";
+
+  return (
+    <div
+      ref={ref}
+      className={` w-6/12 h-auto flex flex-col mt-36 yellow ${transitionClass} ${translateClass} ${skewClass} shadow-xl`}
+      style={{ boxShadow: "-40px 40px 0px 0px rgba(0, 0, 0, 0.5)" }}
+    >
+      <ChangeManagementApplicationName />
+      <ChangeManagementApplicationDescription />
+    </div>
+  );
+};
 
 const ExternalSidebarContent = (props) => {
   const { items, collapsed } = props;
@@ -656,6 +734,7 @@ const Main = (props) => {
           <Blog />
           <DijkstrasAlgorithm />
           <FileControl />
+          <ChangeManagementApplication />
           <div className="h-54"></div>
         </div>
       </Sidebar>
