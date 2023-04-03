@@ -448,8 +448,8 @@ const DijkstrasAlgorithm = () => {
     const centerY = div.offsetHeight / 2;
     const deltaX = x - centerX;
     const deltaY = y - centerY;
-    const rotateX = -deltaY / 30;
-    const rotateY = deltaX / 30;
+    const rotateX = -deltaY / 50;
+    const rotateY = deltaX / 50;
     setRotateX(rotateX);
     setRotateY(rotateY);
     setGradientX((x / div.offsetWidth) * 100);

@@ -1,8 +1,18 @@
 version: '3.3'
 services:
   stefan_portfolio:
-    image: stefan_portfolio:latest
+    image: stefanmhall/stefansportfolio:latest
     container_name: stefan_portfolio_react
     restart: always
     ports:
-      - 9112:3000
+      - 3000:3000
+  app:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
