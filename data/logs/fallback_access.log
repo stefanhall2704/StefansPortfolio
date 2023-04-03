@@ -15,3 +15,5 @@
 [03/Apr/2023:00:40:32 +0000] 400 - - http localhost-nginx-proxy-manager "-" [Client 172.20.0.1] [Length 154] [Gzip -] "-" "-"
 [03/Apr/2023:00:40:32 +0000] 400 - - http localhost-nginx-proxy-manager "-" [Client 172.20.0.1] [Length 154] [Gzip -] "-" "-"
 [03/Apr/2023:00:40:33 +0000] 400 - - http localhost-nginx-proxy-manager "-" [Client 172.20.0.1] [Length 154] [Gzip -] "-" "-"
+[03/Apr/2023:01:33:50 +0000] 400 - GET http stefanhallportfolio.ddns.net "/" [Client 172.20.0.1] [Length 654] [Gzip -] "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36" "-"
+[03/Apr/2023:01:33:50 +0000] 400 - GET http stefanhallportfolio.ddns.net "/favicon.ico" [Client 172.20.0.1] [Length 654] [Gzip -] "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36" "http://stefanhallportfolio.ddns.net:443/"
