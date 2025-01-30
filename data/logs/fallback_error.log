@@ -1,8 +1,0 @@
-2023/04/03 00:54:41 [warn] 115#115: server name "stefanhallportfolio.ddns.net/admin" has suspicious symbols in /data/nginx/proxy_host/2.conf:15
-2023/04/03 00:55:25 [warn] 115#115: server name "stefanhallportfolio.ddns.net/admin" has suspicious symbols in /data/nginx/proxy_host/2.conf:15
-2023/04/03 02:00:53 [warn] 117#117: server name "stefanhallportfolio.ddns.net/admin" has suspicious symbols in /data/nginx/proxy_host/2.conf:15
-2023/04/03 02:03:51 [warn] 117#117: server name "stefanhallportfolio.ddns.net/admin" has suspicious symbols in /data/nginx/proxy_host/2.conf:15
-2023/04/03 02:05:16 [warn] 117#117: server name "stefanhallportfolio.ddns.net/admin" has suspicious symbols in /data/nginx/proxy_host/2.conf:15
-2023/04/03 02:09:19 [warn] 1495#1495: 512 worker_connections are not enough, reusing connections
-2023/04/03 02:09:19 [alert] 1495#1495: 512 worker_connections are not enough
-2023/04/03 02:09:19 [error] 1496#1496: *1133 recv() failed (104: Connection reset by peer) while reading response header from upstream, client: 127.0.0.1, server: localhost-nginx-proxy-manager, request: "GET /favicon.ico HTTP/1.1", upstream: "http://127.0.0.1:80/favicon.ico", host: "localhost", referrer: "http://localhost/"

@@ -45,7 +45,7 @@ const Modal = () => {
                         <br />
                         Email: stefhall.2704@gmail.com
                         <br />
-                        Number: (434)962-5099
+                        Number: (434)942-4421
                       </p>
                     </div>
                   </div>

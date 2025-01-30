@@ -1,8 +1,0 @@
-version: '3.3'
-services:
-  stefan_portfolio:
-    image: stefanmhall/stefansportfolio:latest
-    container_name: stefan_portfolio_react
-    restart: always
-    ports:
-      - 3000:3000
