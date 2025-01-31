@@ -43,28 +43,42 @@ jobs:
             echo "Pulling latest docker image..."
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
 
-            echo "Stopping and removing any existing container..."
+            # Determine if the current container is running on port 3000 or 3001
+            CURRENT_PORT=\$(docker ps --format "{{.Ports}}" | grep -Eo '0.0.0.0:[0-9]+' | cut -d: -f2 | grep -E "3000|3001" | head -n 1)
+
+            if [[ "\$CURRENT_PORT" == "3000" ]]; then
+              NEW_PORT=3001
+              OLD_PORT=3000
+            else
+              NEW_PORT=3000
+              OLD_PORT=3001
+            fi
+
+            echo "Current running port: \$CURRENT_PORT"
+            echo "Deploying new container on port: \$NEW_PORT"
+
+            # Run new container without stopping the old one
+            docker run -d --restart unless-stopped --name portfolio_new -p \$NEW_PORT:3000 ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
+
+            echo "Waiting for new container to be healthy..."
+            sleep 5  # Give it time to start
+
+            if ! docker ps | grep portfolio_new; then
+              echo "❌ New container failed to start!"
+              exit 1
+            fi
+
+            echo "New container is running! Swapping containers..."
+
+            # Swap containers
             docker stop portfolio || true
             docker rm portfolio || true
 
+            # Rename the new container to be the main one
+            docker rename portfolio_new portfolio
+
             echo "Cleaning up old Docker resources..."
             docker system prune -f --volumes  # Cleans up volumes too
-
-            echo "Ensuring port 3000 is free..."
-            sudo fuser -k 3000/tcp || true
-
-            echo "Removing stale Docker networks..."
-            docker network prune -f
-
-            echo "Restarting Docker to release potential stuck ports..."
-            sudo systemctl restart docker
-
-            echo "Starting new container..."
-            docker run -d --restart unless-stopped --name portfolio -p 3000:3000 ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
-
-            echo "Verifying container is running..."
-            sleep 5  # Give it a moment to start
-            docker ps | grep portfolio || { echo '❌ Deployment failed! Container is not running.'; exit 1; }
 
             echo "Deployment complete! ✅"
           EOF
