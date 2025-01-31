@@ -66,24 +66,24 @@ jobs:
             docker run -d --restart unless-stopped --name portfolio_new -p $NEW_PORT:3000 ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
 
             echo "Waiting for new container to be healthy..."
-        sleep 5  # Give it time to start
+            sleep 5  # Give it time to start
 
-        if ! docker ps | grep portfolio_new; then
-          echo "❌ New container failed to start!"
-          exit 1
-        fi
+            if ! docker ps | grep portfolio_new; then
+              echo "❌ New container failed to start!"
+              exit 1
+            fi
 
-        echo "New container is running! Swapping containers..."
+            echo "New container is running! Swapping containers..."
 
-        # Stop and remove the old container
-        docker stop portfolio || true
-        docker rm portfolio || true
+            # Stop and remove the old container
+            docker stop portfolio || true
+            docker rm portfolio || true
 
-        # Rename the new container to become the main one
-        docker rename portfolio_new portfolio
+            # Rename the new container to become the main one
+            docker rename portfolio_new portfolio
 
-        echo "Cleaning up old Docker resources..."
-        docker system prune -f --volumes  # Cleans up volumes too
+            echo "Cleaning up old Docker resources..."
+            docker system prune -f --volumes  # Cleans up volumes too
 
-        echo "Deployment complete! ✅"
-      EOF
+            echo "Deployment complete! ✅"
+          EOF
