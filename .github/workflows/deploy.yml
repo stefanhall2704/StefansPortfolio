@@ -59,7 +59,14 @@ jobs:
 
             echo "Deploying new container: $NEW_CONTAINER on port: $NEW_PORT"
 
-            # Run new container without stopping the old one
+            # Ensure no leftover 'portfolio_blue' or 'portfolio_green' containers exist
+            if docker ps -a --format '{{.Names}}' | grep -q "^$NEW_CONTAINER$"; then
+              echo "Removing old $NEW_CONTAINER container..."
+              docker stop $NEW_CONTAINER || true
+              docker rm $NEW_CONTAINER || true
+            fi
+
+            # Run new container on alternate port
             docker run -d --restart unless-stopped --name $NEW_CONTAINER -p $NEW_PORT:3000 ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
 
             echo "Waiting for new container ($NEW_CONTAINER) to be healthy..."
@@ -72,18 +79,18 @@ jobs:
 
             echo "New container is running on port $NEW_PORT. Swapping traffic..."
 
-            # Stop and remove the old container
-            OLD_CONTAINER="portfolio"
-            if docker ps | grep $OLD_CONTAINER; then
-              docker stop $OLD_CONTAINER || true
-              docker rm $OLD_CONTAINER || true
+            # Stop and remove the old container properly
+            if docker ps | grep "portfolio"; then
+              echo "Stopping and removing the old portfolio container..."
+              docker stop portfolio || true
+              docker rm portfolio || true
             fi
 
             # Rename the new container to "portfolio"
             docker rename $NEW_CONTAINER portfolio
 
-            echo "Cleaning up old Docker resources..."
-            docker system prune -f --volumes  # Cleans up volumes too
+            echo "Final cleanup: Removing unused images..."
+            docker image prune -af
 
             echo "Deployment complete! ✅"
           EOF
