@@ -1,13 +1,20 @@
-FROM node:19-buster as build
-WORKDIR /code
-COPY package.json package.json
-COPY package-lock.json package-lock.json
-RUN npm i -g npm@9.1.1 && \
-    npm i && \
-    find /code/node_modules/ ! -user root | xargs chown root:root
+# Use a stable LTS version for compatibility and security
+FROM node:20-buster AS build
 
+# Set working directory
+WORKDIR /code
+
+# Copy package.json and package-lock.json first to leverage caching
+COPY package.json package-lock.json ./
+
+# Install dependencies efficiently with caching
+RUN npm ci --omit=dev
+
+# Copy the rest of the application
 COPY . .
 
+# Expose the application port
 EXPOSE 3000
 
+# Run the application
 CMD ["npm", "run", "start"]
