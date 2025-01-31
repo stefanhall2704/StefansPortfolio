@@ -6,24 +6,24 @@ on:
       - main
 
 jobs:
-  build:
-    name: Build and Push Docker Image
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Log into Docker Hub
-        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-
-      - name: Build and Push Docker Image
-        run: |
-          docker buildx create --use
-          docker buildx build --platform linux/arm64 -t ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest --push .
+  # build:
+  #   name: Build and Push Docker Image
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v3
+  #
+  #     - name: Log into Docker Hub
+  #       run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+  #
+  #     - name: Build and Push Docker Image
+  #       run: |
+  #         docker buildx create --use
+  #         docker buildx build --platform linux/arm64 -t ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest --push .
 
   deploy:
     name: Deploy Portfolio
-    needs: [build]
+    # needs: [build]
     runs-on: ubuntu-latest
     steps:
       - name: Create SSH directory and add private key
