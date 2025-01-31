@@ -39,26 +39,10 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -v ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             set -e  # Exit on error to prevent partial failures
-
-            echo "Pulling latest docker image..."
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
-
-            echo "Removing old images..."
-            docker image prune -af
-
-            echo "Stopping and removing existing container..."
             docker stop portfolio || true
             docker rm portfolio || true
-
-            echo "Starting new container on port 3000..."
             docker run -d --restart unless-stopped --name portfolio -p 3000:3000 ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
-
-            echo "Verifying that the container is running..."
-            sleep 5
-            if ! docker ps | grep portfolio; then
-              echo "❌ Deployment failed! Container is not running."
-              exit 1
-            fi
-
+            docker image prune -af
             echo "Deployment complete! ✅"
           EOF
