@@ -43,55 +43,22 @@ jobs:
             echo "Pulling latest docker image..."
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
 
-            # Check if a container is currently running and find its port
-            CURRENT_PORT=$(docker ps --filter "name=portfolio" --format "{{.Ports}}" | grep -oE ':[0-9]+' | cut -d: -f2 || echo "3000")
+            echo "Removing old images..."
+            docker image prune -af
 
-            echo "Current running port: $CURRENT_PORT"
+            echo "Stopping and removing existing container..."
+            docker stop portfolio || true
+            docker rm portfolio || true
 
-            # Dynamically determine new port and container name
-            if [[ "$CURRENT_PORT" == "3000" ]]; then
-              NEW_PORT="3001"
-              NEW_CONTAINER="portfolio_blue"
-            else
-              NEW_PORT="3000"
-              NEW_CONTAINER="portfolio_green"
-            fi
+            echo "Starting new container on port 3000..."
+            docker run -d --restart unless-stopped --name portfolio -p 3000:3000 ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
 
-            echo "Deploying new container: $NEW_CONTAINER on port: $NEW_PORT"
-
-            # Ensure no leftover 'portfolio_blue' or 'portfolio_green' containers exist
-            if docker ps -a --format '{{.Names}}' | grep -q "^$NEW_CONTAINER$"; then
-              echo "Removing old $NEW_CONTAINER container..."
-              docker stop $NEW_CONTAINER || true
-              docker rm $NEW_CONTAINER || true
-            fi
-
-            # Run new container on alternate port
-            docker run -d --restart unless-stopped --name $NEW_CONTAINER -p $NEW_PORT:3000 ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
-
-            echo "Waiting for new container ($NEW_CONTAINER) to be healthy..."
-            sleep 5  # Give it time to start
-
-            if ! docker ps | grep $NEW_CONTAINER; then
-              echo "❌ New container failed to start!"
+            echo "Verifying that the container is running..."
+            sleep 5
+            if ! docker ps | grep portfolio; then
+              echo "❌ Deployment failed! Container is not running."
               exit 1
             fi
 
-            echo "New container is running on port $NEW_PORT. Swapping traffic..."
-
-            # Stop and remove the old container properly
-            if docker ps | grep "portfolio"; then
-              echo "Stopping and removing the old portfolio container..."
-              docker stop portfolio || true
-              docker rm portfolio || true
-            fi
-
-            # Rename the new container to "portfolio"
-            docker rename $NEW_CONTAINER portfolio
-
-            echo "Final cleanup: Removing unused images..."
-            docker image prune -af
-
             echo "Deployment complete! ✅"
           EOF
-
