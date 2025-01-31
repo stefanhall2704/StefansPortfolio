@@ -41,10 +41,10 @@ jobs:
             set -e  # Exit on error to prevent partial failures
 
             echo "Pulling latest docker image..."
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
+            # docker pull ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
 
             # Determine if the current container is running on port 3000 or 3001
-            CURRENT_PORT=\$(docker ps --format "{{.Ports}}" | grep -Eo '0.0.0.0:[0-9]+' | cut -d: -f2 | grep -E "3000|3001" | head -n 1)
+            CURRENT_PORT=$(docker ps --filter "name=portfolio" --format "{{.Ports}}" | grep -oE ':[0-9]+' | cut -d: -f2)
 
             if [[ "\$CURRENT_PORT" == "3000" ]]; then
               NEW_PORT=3001
