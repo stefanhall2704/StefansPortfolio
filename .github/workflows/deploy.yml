@@ -35,55 +35,55 @@ jobs:
           ls -lah ~/.ssh  # Debugging: Verify SSH key exists
           cat ~/.ssh/id_rsa | wc -l  # Debugging: Check key length
         shell: bash
-- name: Deploy to Raspberry Pi
-  run: |
-    ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -v ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-      set -e  # Exit on error to prevent partial failures
+      - name: Deploy to Raspberry Pi
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -v ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            set -e  # Exit on error to prevent partial failures
 
-      echo "Pulling latest docker image..."
-      # docker pull ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
+            echo "Pulling latest docker image..."
+            # docker pull ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
 
-      # Determine the current running container's port
-      CURRENT_PORT=$(docker ps --filter "name=portfolio" --format "{{.Ports}}" | grep -oE ':[0-9]+' | cut -d: -f2 || echo "3000")
+            # Determine the current running container's port
+            CURRENT_PORT=$(docker ps --filter "name=portfolio" --format "{{.Ports}}" | grep -oE ':[0-9]+' | cut -d: -f2 || echo "3000")
 
-      if [[ -z "$CURRENT_PORT" ]]; then
-        echo "No existing container found. Defaulting to port 3000."
-        CURRENT_PORT="3000"
-      fi
+            if [[ -z "$CURRENT_PORT" ]]; then
+              echo "No existing container found. Defaulting to port 3000."
+              CURRENT_PORT="3000"
+            fi
 
-      if [[ "$CURRENT_PORT" == "3000" ]]; then
-        NEW_PORT="3001"
-        OLD_PORT="3000"
-      else
-        NEW_PORT="3000"
-        OLD_PORT="3001"
-      fi
+            if [[ "$CURRENT_PORT" == "3000" ]]; then
+              NEW_PORT="3001"
+              OLD_PORT="3000"
+            else
+              NEW_PORT="3000"
+              OLD_PORT="3001"
+            fi
 
-      echo "Current running port: $CURRENT_PORT"
-      echo "Deploying new container on port: $NEW_PORT"
+            echo "Current running port: $CURRENT_PORT"
+            echo "Deploying new container on port: $NEW_PORT"
 
-      # Run new container on the alternate port
-      docker run -d --restart unless-stopped --name portfolio_new -p $NEW_PORT:3000 ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
+            # Run new container on the alternate port
+            docker run -d --restart unless-stopped --name portfolio_new -p $NEW_PORT:3000 ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
 
-      echo "Waiting for new container to be healthy..."
-      sleep 5  # Give it time to start
+            echo "Waiting for new container to be healthy..."
+        sleep 5  # Give it time to start
 
-      if ! docker ps | grep portfolio_new; then
-        echo "❌ New container failed to start!"
-        exit 1
-      fi
+        if ! docker ps | grep portfolio_new; then
+          echo "❌ New container failed to start!"
+          exit 1
+        fi
 
-      echo "New container is running! Swapping containers..."
+        echo "New container is running! Swapping containers..."
 
-      # Stop and remove the old container
-      docker stop portfolio || true
-      docker rm portfolio || true
+        # Stop and remove the old container
+        docker stop portfolio || true
+        docker rm portfolio || true
 
-      # Rename the new container to become the main one
-      docker rename portfolio_new portfolio
+        # Rename the new container to become the main one
+        docker rename portfolio_new portfolio
 
-      echo "Cleaning up old Docker resources..."
-      docker system prune -f --volumes  # Cleans up volumes too
+        echo "Cleaning up old Docker resources..."
+        docker system prune -f --volumes  # Cleans up volumes too
 
-      echo "Deployment complete! ✅"
-    EOF
+        echo "Deployment complete! ✅"
+      EOF
