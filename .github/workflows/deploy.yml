@@ -28,7 +28,6 @@ jobs:
         run: |
           docker buildx create --use
           docker buildx build --platform linux/arm64 -t ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest --push .
-
   setup-ssh:
     name: Set up SSH Key
     runs-on: ubuntu-latest
@@ -36,10 +35,11 @@ jobs:
       - name: Create SSH directory and add private key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | awk '{gsub(/\\n/,"\n")}1' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
         shell: bash
+
 
   deploy:
     name: Deploy to Raspberry Pi
