@@ -5,6 +5,7 @@ on:
     branches:
       - main
 
+jobs:
   build:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
@@ -27,11 +28,9 @@ on:
       - name: Create SSH directory and add private key
         run: |
           mkdir -p ~/.ssh
-          echo "SSH Key (debug view):"
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" | awk '{print NR, $0}'  # Print each line with a number
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ls -lah ~/.ssh
+          ls -lah ~/.ssh  # Debugging output
           cat ~/.ssh/id_rsa | wc -l  # Count number of lines
         shell: bash
 
