@@ -48,45 +48,39 @@ jobs:
 
             echo "Current running port: $CURRENT_PORT"
 
-            # Set the new port (always opposite of the current one)
+            # Dynamically determine new port and container name
             if [[ "$CURRENT_PORT" == "3000" ]]; then
               NEW_PORT="3001"
+              NEW_CONTAINER="portfolio_blue"
             else
               NEW_PORT="3000"
+              NEW_CONTAINER="portfolio_green"
             fi
 
-            echo "Deploying new container on port: $NEW_PORT"
+            echo "Deploying new container: $NEW_CONTAINER on port: $NEW_PORT"
 
-            # Run new container on alternate port
-            docker run -d --restart unless-stopped --name portfolio_new -p $NEW_PORT:3000 ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
+            # Run new container without stopping the old one
+            docker run -d --restart unless-stopped --name $NEW_CONTAINER -p $NEW_PORT:3000 ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
 
-            echo "Waiting for new container to be healthy..."
+            echo "Waiting for new container ($NEW_CONTAINER) to be healthy..."
             sleep 5  # Give it time to start
 
-            if ! docker ps | grep portfolio_new; then
+            if ! docker ps | grep $NEW_CONTAINER; then
               echo "❌ New container failed to start!"
               exit 1
             fi
 
-            echo "New container is running on port $NEW_PORT. Swapping containers..."
+            echo "New container is running on port $NEW_PORT. Swapping traffic..."
 
             # Stop and remove the old container
-            if docker ps | grep portfolio; then
-              docker stop portfolio || true
-              docker rm portfolio || true
+            OLD_CONTAINER="portfolio"
+            if docker ps | grep $OLD_CONTAINER; then
+              docker stop $OLD_CONTAINER || true
+              docker rm $OLD_CONTAINER || true
             fi
 
             # Rename the new container to "portfolio"
-            docker rename portfolio_new portfolio
-
-            echo "Final step: Restarting the container on the correct port (3000)..."
-
-            # Stop the renamed container
-            docker stop portfolio
-            docker rm portfolio
-
-            # Start it fresh on port 3000
-            docker run -d --restart unless-stopped --name portfolio -p 3000:3000 ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
+            docker rename $NEW_CONTAINER portfolio
 
             echo "Cleaning up old Docker resources..."
             docker system prune -f --volumes  # Cleans up volumes too
