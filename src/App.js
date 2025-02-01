@@ -114,7 +114,6 @@ const Name = () => {
   return (
     <div className="flex justify-center">
       <h1 className="text-4xl">Stefan Hall</h1>
-      <h3 className="text4xl">TEST</h3> 
     </div>
   );
 };
