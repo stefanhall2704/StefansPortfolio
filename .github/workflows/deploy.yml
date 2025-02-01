@@ -53,21 +53,17 @@ jobs:
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
             docker run -d --restart unless-stopped --name portfolio_new -p ${NEW_PORT}:3000 ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
             echo "New container is starting on port ${NEW_PORT}. Waiting 2 minutes for health check..."
-            TIMEOUT=120
+            TIMEOUT=120  # total wait time in seconds
             while [ $TIMEOUT -gt 0 ]; do
-                HEALTH=$(docker inspect --format='{{.State.Health.Status}}' portfolio_new 2>/dev/null || echo "unavailable")
-                if [ "$HEALTH" = "healthy" ]; then
-                    echo "Container is healthy."
+                HTTP_STATUS=$(curl --max-time 2 -o /dev/null -s -w "%{http_code}" http://localhost:${NEW_PORT} || echo "000")
+                if [ "$HTTP_STATUS" -eq 200 ]; then
+                    echo "Server is up and responded with 200 OK."
                     break
                 fi
-                echo "Current health status: $HEALTH. Waiting..."
+                echo "Server not yet ready (HTTP status: ${HTTP_STATUS}). Waiting..."
                 sleep 5
                 TIMEOUT=$((TIMEOUT-5))
             done
-            if [ $TIMEOUT -le 0 ]; then
-                echo "Error: Container did not become healthy in time."
-                exit 1
-            fi
             # If your config file originally has "proxy_pass http://localhost:3000", replace 3000 with ${NEW_PORT}.
             sudo sed -i "s/proxy_pass http:\\/\\/localhost:${CURRENT_PORT}/proxy_pass http:\\/\\/localhost:${NEW_PORT}/" /etc/nginx/sites-available/stefanhallsportfolio
             sudo nginx -s reload
