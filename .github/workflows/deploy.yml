@@ -35,14 +35,56 @@ jobs:
           ls -lah ~/.ssh  # Debugging: Verify SSH key exists
           cat ~/.ssh/id_rsa | wc -l  # Debugging: Check key length
         shell: bash
+
       - name: Deploy to Raspberry Pi
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -v ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-            set -e  # Exit on error to prevent partial failures
+            set -e
+            # --- 1. Determine the current active port (default to 3000 if not set) ---
+            if [ -f ~/current_port.txt ]; then
+                CURRENT_PORT=$(cat ~/current_port.txt)
+            else
+                CURRENT_PORT=3000
+            fi
+
+            # --- 2. Choose alternate port ---
+            if [ "$CURRENT_PORT" = "3000" ]; then
+                NEW_PORT=3001
+            else
+                NEW_PORT=3000
+            fi
+            echo "Current port: $CURRENT_PORT, deploying new container on port: $NEW_PORT"
+
+            # --- 3. Pull the latest image ---
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
+
+            # --- 4. Run the new container on the alternate port with a temporary name ---
+            docker run -d --restart unless-stopped --name portfolio_new -p ${NEW_PORT}:3000 ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
+
+            echo "New container is starting on port ${NEW_PORT}. Waiting 2 minutes for health check..."
+            sleep 120  # Consider replacing this with an actual health check loop
+
+            # --- 5. Update Nginx configuration ---
+            # Replace the proxy_pass port in the config file. Adjust the sed command as needed.
+            # If your config file originally has "proxy_pass http://localhost:3000", replace 3000 with ${NEW_PORT}.
+            sudo sed -i "s/proxy_pass http:\\/\\/localhost:${CURRENT_PORT}/proxy_pass http:\\/\\/localhost:${NEW_PORT}/" /etc/nginx/sites-available/stefanhallsportfolio
+
+            # Reload Nginx to apply the new configuration
+            sudo nginx -s reload
+            echo "Nginx has been reloaded to point to port ${NEW_PORT}"
+
+            # --- 6. Tear down the old container (if any) ---
             docker stop portfolio || true
             docker rm portfolio || true
-            docker run -d --restart unless-stopped --name portfolio -p 3000:3000 ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
+
+            # Rename the new container to "portfolio" so that the name remains consistent for future deployments
+            docker rename portfolio_new portfolio
+
+            # --- 7. Persist the active port value ---
+            echo ${NEW_PORT} > ~/current_port.txt
+
+            # --- 8. Clean up dangling images ---
             docker image prune -af
+
             echo "Deployment complete! ✅"
           EOF
