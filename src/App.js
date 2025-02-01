@@ -773,11 +773,11 @@ class App extends React.Component {
         icon: "fa-brands fa-linkedin text-4xl",
         text: "LinkedIn",
       },
-      {
-        link: "https://codepen.io/stefan_hall",
-        icon: "fa-brands fa-codepen text-4xl",
-        text: "Codepen",
-      },
+      // {
+      //   link: "https://codepen.io/stefan_hall",
+      //   icon: "fa-brands fa-codepen text-4xl",
+      //   text: "Codepen",
+      // },
     ];
 
     return (
