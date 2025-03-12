@@ -122,7 +122,7 @@ const JobTitle = () => {
   return (
     <div className="flex justify-center">
       <h1 className="text-xl">
-        Site Reliability Engineer
+        Site Reliability Engineer (SRE)
       </h1>
     </div>
   );
