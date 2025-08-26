@@ -1,4 +1,4 @@
-name: Deploy to Raspberry Pi
+name: Deploy to Home Server
 
 on:
   push:
@@ -11,67 +11,53 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Log into Docker Hub
-        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build and Push Docker Image
-        run: |
-          docker buildx create --use
-          docker buildx build --platform linux/arm64 -t ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest --push .
+      - name: Build and Push Image (amd64 only)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
 
   deploy:
     name: Deploy Portfolio
-    needs: [build]
+    needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Create SSH directory and add private key
+      - name: Set up SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa  # Removes potential Windows line endings
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts  # Adds host to known_hosts to prevent prompt
-          ls -lah ~/.ssh  # Debugging: Verify SSH key exists
-          cat ~/.ssh/id_rsa | wc -l  # Debugging: Check key length
-        shell: bash
-      - name: Deploy to Raspberry Pi
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy via SSH
         run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -v ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=yes ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             set -e
-            if [ -f ~/current_port.txt ]; then
-                CURRENT_PORT=$(cat ~/current_port.txt)
-            else
-                CURRENT_PORT=3000
-            fi
-            if [ "$CURRENT_PORT" = "3000" ]; then
-                NEW_PORT=3001
-            else
-                NEW_PORT=3000
-            fi
-            echo "Current port: $CURRENT_PORT, deploying new container on port: $NEW_PORT"
+            echo "Pulling latest image..."
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
-            docker run -d --restart unless-stopped --name portfolio_new -p ${NEW_PORT}:3000 ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
-            echo "New container is starting on port ${NEW_PORT}. Waiting 2 minutes for health check..."
-            TIMEOUT=120  # total wait time in seconds
-            while [ $TIMEOUT -gt 0 ]; do
-                HTTP_STATUS=$(curl --max-time 2 -o /dev/null -s -w "%{http_code}" http://localhost:${NEW_PORT} || echo "000")
-                if [ "$HTTP_STATUS" -eq 200 ]; then
-                    echo "Server is up and responded with 200 OK."
-                    break
-                fi
-                echo "Server not yet ready (HTTP status: ${HTTP_STATUS}). Waiting..."
-                sleep 5
-                TIMEOUT=$((TIMEOUT-5))
-            done
-            # If your config file originally has "proxy_pass http://localhost:3000", replace 3000 with ${NEW_PORT}.
-            sudo sed -i "s/proxy_pass http:\\/\\/localhost:${CURRENT_PORT}/proxy_pass http:\\/\\/localhost:${NEW_PORT}/" /etc/nginx/sites-available/stefanhallsportfolio
-            sudo nginx -s reload
-            echo "Nginx has been reloaded to point to port ${NEW_PORT}"
+
+            echo "Stopping old container if it exists..."
             docker stop portfolio || true
             docker rm portfolio || true
-            docker rename portfolio_new portfolio
-            echo ${NEW_PORT} > ~/current_port.txt
-            docker image prune -af
-            echo "Deployment complete! ✅"
+
+            echo "Starting new container..."
+            docker run -d --restart unless-stopped --name portfolio -p 3000:3000 ${{ secrets.DOCKERHUB_USERNAME }}/stefanportfolio:latest
+
+            echo "Cleaning up unused images..."
+            docker image prune -af || true
+
+            echo "✅ Deployment complete!"
           EOF
