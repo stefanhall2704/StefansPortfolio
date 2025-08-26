@@ -271,6 +271,94 @@ const BlogName = () => {
   );
 };
 
+const SelfHealingName = () => {
+  return (
+    <div className="flex justify-center mt-5">
+      <h1>
+      <a
+        href=""
+        className="text-4xl hover:underline"
+      >
+        Self Healing 
+      </a></h1>
+    </div>
+  );
+};
+
+const SelfHealingDescription = () => {
+  return (
+    <div className="flex justify-center ml-5 mb-5 mr-5">
+      <ul>
+        <li>
+          
+            <h1 className='text-xl' >
+            Introduction:
+            </h1>
+            <br />
+            <p>
+              As you enter the world of reliability, you will run into many problems; response time too high, random outages, flakeyness.
+              And there are different solutions to these various issues. Every second counts. I have implemented a self healing system across 14 VMs.
+              This is to self heal app pools when detecting an outage on a single or multiple app pools.
+            </p>
+        </li>
+        <br />
+        <li>
+            <h1 className='text-xl' > 
+            Skills and Knowledge:
+            </h1>
+            <br />
+            <p>
+              Some pieces to konw about self healing in my project was, detection, detecting false positives, a method in order to heal (fix) the problem.
+              A few key pieces here was using gatus alongside its custom alerting. The alerting would hit an internal api. The api would then do its own check for the healthcheck.
+              Then if there was a false positive, we would log the false positive. 
+            </p>
+        </li>
+        <br />
+        <li>
+          <h1 className='text-xl' > 
+            Specifics:
+            </h1>
+            <br />
+            <p>
+              This is the process. We have a function, lambda/azure function. And the function keeps up to date with new customers/tenants. We also have Gatus. Gatus is an open source, scalable healthcheck service. The healthcheck service will run healthchecks every so often and when detecting a failure, it will use custom alerting to send the custom alert to an internal api on the network (vpc/vnet). This api will then determind if it is a false positive or not. If it is, we will stop the process and log out to our monitoring tool (grafana/datadog) and give it info about the false positive. If there is a customer/tenant that doesn't exists anymore, we will remove them from the config to avoid further healthcheck processing. If it is a real app pool that is down, we will then take the metadata from the custom alert and use an ssh task to send to the master VM that has port 22 opened on the network and whitelists the IP of the api that is sending the ssh task. This is also secured via ssh key that rotates pretty often. Then on the VM, there are sripts that will run the self healing. And then from there, it will spin up the app pool(s) as needed on the VMs, and on the next iteration of the healthchecks, we will not alert, but we will send a log to our monitoring tool saying that self healing was implemented on X customer/tenant.
+            </p>
+        </li>
+        <br />
+        <li>
+            <h1 className='text-xl' > 
+            Conclusion:
+            </h1>
+            <br />
+            <p>
+              This process helps with reliability of our VM app pools. We also have no more complaints about customers randomly going down. And this also helps customer support and SRE not having to implement ad-hoc fixes to fix the app pool(s) when they go down. It is also good to note that self healing is a very tedious, yet worthy process to go through on your relative services.
+          </p>
+        </li>
+      </ul>
+    </div>
+  );
+};
+
+const SelfHealing = () => {
+  const { ref, inView } = useInView({ threshold: 0.5 });
+  const translateClass = inView
+    ? "translate-x-1/2 duration-1000"
+    : "translate-x-full duration-1000";
+  const skewClass = inView ? "-skew-x-6" : "";
+  const transitionClass = inView
+    ? "transition-transform ease-out"
+    : "transition-transform ease-in";
+
+  return (
+    <div
+      ref={ref}
+      className={` w-6/12 h-auto flex flex-col mt-36 red ${transitionClass} ${translateClass} ${skewClass} shadow-xl`}
+      style={{ boxShadow: "-40px 40px 0px 0px rgba(0, 0, 0, 0.5)" }}
+    >
+      <SelfHealingName />
+      <SelfHealingDescription />
+    </div>
+  );
+};
 const BlogDescription = () => {
   return (
     <div className="flex justify-center ml-5 mb-5 mr-5">
@@ -731,10 +819,11 @@ const Main = (props) => {
         <div className="content">
           <Info />
           <Story />
-          <Blog />
+          <SelfHealing />
           <DijkstrasAlgorithm />
           <FileControl />
           <ChangeManagementApplication />
+          <Blog />
           <div className="h-54"></div>
         </div>
       </Sidebar>
