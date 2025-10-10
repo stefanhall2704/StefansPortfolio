@@ -1,22 +1,32 @@
-# Use a stable LTS version for compatibility and security
-FROM node:18-bullseye
+# Multi-stage build for production React app
+FROM node:18-bullseye AS builder
 
 # Set working directory
 WORKDIR /app
-ENV NODE_ENV=production
 
-# Copy package.json and package-lock.json first to leverage caching
-COPY package*.json  ./
+# Copy package files
+COPY package*.json ./
 
-# Install dependencies efficiently with caching
-RUN npm config set engine-strict=false && npm ci --omit=dev --legacy-peer-deps
+# Install all dependencies (including dev dependencies for build)
+RUN npm config set engine-strict=false && npm ci --legacy-peer-deps
 
-# Copy the rest of the application
+# Copy source code
 COPY . .
 
-USER node
-# Expose the application port
-EXPOSE 3000
+# Build the React app for production
+RUN npm run build
 
-# Run the application
-CMD ["npm", "run", "start"]
+# Production stage with nginx
+FROM nginx:alpine
+
+# Copy built React app from builder stage
+COPY --from=builder /app/build /usr/share/nginx/html
+
+# Copy custom nginx config (optional)
+# COPY nginx.conf /etc/nginx/nginx.conf
+
+# Expose port 80
+EXPOSE 80
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
