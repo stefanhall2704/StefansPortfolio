@@ -1549,46 +1549,6 @@ const TracerouteVisualization = () => {
                             <i className="fas fa-times text-xs"></i>
                           </button>
                         </div>
-                        {/* Local Machine OSI Stack (Before Network) */}
-                        <div className="p-6 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-indigo-500/10 rounded-xl border border-cyan-400/30 backdrop-blur-sm">
-                        <div className="flex items-center mb-4">
-                          <div className="w-8 h-8 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
-                            <i className="fas fa-desktop text-white text-xs"></i>
-                          </div>
-                          <h5 className="text-lg font-semibold text-cyan-300">Local OSI Stack</h5>
-                        </div>
-
-                        <div className="space-y-2">
-                          {[
-                            { layer: "App", protocol: "Browser HTTPS", icon: "🌐" },
-                            { layer: "Pres", protocol: "TLS 1.3", icon: "🔐" },
-                            { layer: "Sess", protocol: "TCP Handshake", icon: "🔗" },
-                            { layer: "Trans", protocol: `TCP:${selectedHop.port}`, icon: "📦" },
-                            { layer: "Net", protocol: "IP Packet", icon: "🌍" },
-                            { layer: "Data", protocol: "Ethernet", icon: "⚡" },
-                            { layer: "Phys", protocol: "WiFi 802.11", icon: "📡" }
-                          ].map((localLayer, index) => (
-                            <div key={index} className="flex items-center p-2 bg-slate-800/40 rounded-lg border border-slate-600/20">
-                              <div className="text-sm mr-2">{localLayer.icon}</div>
-                              <div className="flex-1">
-                                <div className="flex items-center justify-between">
-                                  <span className="font-semibold text-white text-xs">{localLayer.layer}</span>
-                                  <span className="text-cyan-400 font-mono text-xs">{localLayer.protocol}</span>
-                                </div>
-                              </div>
-                              <div className="ml-2">
-                                <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-
-                        <div className="mt-3 p-2 bg-emerald-500/10 rounded-lg border border-emerald-400/30">
-                          <div className="text-center text-xs text-emerald-400 font-medium">
-                            📤 Packets Leave Device
-                          </div>
-                        </div>
-                      </div>
 
                       {/* Network OSI Model (Current Hop Analysis) */}
                       <div className="mt-8 p-6 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 rounded-xl border border-indigo-400/30 backdrop-blur-sm">
@@ -1658,7 +1618,48 @@ const TracerouteVisualization = () => {
                           </div>
                         </div>
                       </div>
+
+                      {/* Local Machine OSI Stack (After Network) */}
+                      <div className="mt-8 p-6 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-indigo-500/10 rounded-xl border border-cyan-400/30 backdrop-blur-sm">
+                        <div className="flex items-center mb-4">
+                          <div className="w-8 h-8 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                            <i className="fas fa-desktop text-white text-xs"></i>
+                          </div>
+                          <h5 className="text-lg font-semibold text-cyan-300">Local OSI Stack</h5>
+                        </div>
+
+                        <div className="space-y-2">
+                          {[
+                            { layer: "App", protocol: "Browser HTTPS", icon: "🌐" },
+                            { layer: "Pres", protocol: "TLS 1.3", icon: "🔐" },
+                            { layer: "Sess", protocol: "TCP Handshake", icon: "🔗" },
+                            { layer: "Trans", protocol: `TCP:${selectedHop.port}`, icon: "📦" },
+                            { layer: "Net", protocol: "IP Packet", icon: "🌍" },
+                            { layer: "Data", protocol: "Ethernet", icon: "⚡" },
+                            { layer: "Phys", protocol: "WiFi 802.11", icon: "📡" }
+                          ].map((localLayer, index) => (
+                            <div key={index} className="flex items-center p-2 bg-slate-800/40 rounded-lg border border-slate-600/20">
+                              <div className="text-sm mr-2">{localLayer.icon}</div>
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-semibold text-white text-xs">{localLayer.layer}</span>
+                                  <span className="text-cyan-400 font-mono text-xs">{localLayer.protocol}</span>
+                                </div>
+                              </div>
+                              <div className="ml-2">
+                                <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="mt-3 p-2 bg-emerald-500/10 rounded-lg border border-emerald-400/30">
+                          <div className="text-center text-xs text-emerald-400 font-medium">
+                            📤 Packets Leave Device
+                          </div>
+                        </div>
                       </div>
+                    </div>
 
                       {/* Interactive Packet Inspection Panel */}
                       {selectedOsiLayer && (
@@ -1683,7 +1684,7 @@ const TracerouteVisualization = () => {
                             </button>
                           </div>
 
-                          <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-25rem)]">
+                          <div className="space-y-4">
                             {generateLayerPackets(selectedOsiLayer, selectedHop).map((packet, index) => (
                               <div key={index} className="bg-slate-800/60 rounded-lg border border-slate-600/30 p-4">
                                 <div className="mb-3">
