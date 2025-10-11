@@ -21,27 +21,25 @@ fi
 
 echo "✅ Connected to Kubernetes cluster"
 
-# Navigate to the k8s directory
-cd "$(dirname "$0")"
-
-# Apply the kustomization
+# Deploy using the main k8s structure
 echo "📦 Applying Kubernetes configurations..."
-kubectl apply -k .
+kubectl apply -f /home/stefan/Documents/Personal/kubernetes/k8s/portfolio-deployment.yaml
+kubectl apply -f /home/stefan/Documents/Personal/kubernetes/k8s/portfolio-service.yaml
 
 # Wait for deployment to be ready
 echo "⏳ Waiting for deployment to be ready..."
-kubectl wait --for=condition=available --timeout=300s deployment/portfolio -n stefansportfolio
+kubectl wait --for=condition=available --timeout=300s deployment/portfolio -n hallphotography
 
 # Get the service information
 echo "📋 Service Information:"
-kubectl get service portfolio -n stefansportfolio
+kubectl get service portfolio -n hallphotography
 
 # Get the ingress information
 echo "🌐 Ingress Information:"
-kubectl get ingress portfolio-ingress -n stefansportfolio
+kubectl get ingress web-ingress -n hallphotography
 
 echo "✅ Portfolio deployment completed successfully!"
 echo ""
-echo "🔗 Access your portfolio at: https://portfolio.stefanmhall.com"
-echo "📊 Check deployment status with: kubectl get pods -n stefansportfolio"
-echo "📝 View logs with: kubectl logs -f deployment/portfolio -n stefansportfolio"
+echo "🔗 Access your portfolio at: https://portfolio.stefan-sre.com"
+echo "📊 Check deployment status with: kubectl get pods -n hallphotography"
+echo "📝 View logs with: kubectl logs -f deployment/portfolio -n hallphotography"

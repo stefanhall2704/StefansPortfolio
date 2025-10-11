@@ -10,23 +10,25 @@ echo ""
 PORTFOLIO_NODEPORT=31056
 CONTROL_PLANE_IP="192.168.1.102"
 CLOUDFLARE_CONFIG="/etc/cloudflared/config.yml"
+NAMESPACE="hallphotography"
 
 echo "Deploying Portfolio app..."
-# Deploy the portfolio app
-kubectl apply -k k8s/portfolio/
+# Deploy the portfolio app using the main k8s structure
+kubectl apply -f /home/stefan/Documents/Personal/kubernetes/k8s/portfolio-deployment.yaml
+kubectl apply -f /home/stefan/Documents/Personal/kubernetes/k8s/portfolio-service.yaml
 
 echo ""
 echo "Forcing deployment rollout to ensure new image is pulled..."
 # Force restart to pull the latest image with updated code
-kubectl rollout restart deployment/portfolio -n stefansportfolio
+kubectl rollout restart deployment/portfolio -n $NAMESPACE
 
 echo ""
 echo "Waiting for Portfolio app to be ready..."
-kubectl wait --for=condition=available --timeout=300s deployment/portfolio -n stefansportfolio
+kubectl wait --for=condition=available --timeout=300s deployment/portfolio -n $NAMESPACE
 
 echo ""
 echo "Verifying service has correct NodePort..."
-ACTUAL_NODEPORT=$(kubectl get svc portfolio -n stefansportfolio -o jsonpath='{.spec.ports[0].nodePort}')
+ACTUAL_NODEPORT=$(kubectl get svc portfolio -n $NAMESPACE -o jsonpath='{.spec.ports[0].nodePort}')
 if [ "$ACTUAL_NODEPORT" != "$PORTFOLIO_NODEPORT" ]; then
     echo "ERROR: Service NodePort is $ACTUAL_NODEPORT, expected $PORTFOLIO_NODEPORT"
     echo "The portfolio-service.yaml may not have the fixed nodePort configured correctly."
@@ -42,7 +44,7 @@ if [ -f "$CLOUDFLARE_CONFIG" ]; then
     sudo cp "$CLOUDFLARE_CONFIG" "$CLOUDFLARE_CONFIG.backup.$(date +%Y%m%d_%H%M%S)"
     
     # Update the NodePort in the config for portfolio
-    sudo sed -i "s|https://$CONTROL_PLANE_IP:[0-9]*|https://$CONTROL_PLANE_IP:$PORTFOLIO_NODEPORT|g" "$CLOUDFLARE_CONFIG"
+    sudo sed -i "s|http://$CONTROL_PLANE_IP:[0-9]*|http://$CONTROL_PLANE_IP:$PORTFOLIO_NODEPORT|g" "$CLOUDFLARE_CONFIG"
     
     echo "✅ Cloudflare config updated to use NodePort $PORTFOLIO_NODEPORT"
     
@@ -78,6 +80,6 @@ echo "  Control Plane IP: $CONTROL_PLANE_IP"
 echo "  External URL: https://$CONTROL_PLANE_IP:$PORTFOLIO_NODEPORT"
 echo ""
 echo "Check status with:"
-echo "  kubectl get pods -n stefansportfolio -l app=portfolio"
-echo "  kubectl get svc -n stefansportfolio -l app=portfolio"
+echo "  kubectl get pods -n $NAMESPACE -l app=portfolio"
+echo "  kubectl get svc -n $NAMESPACE -l app=portfolio"
 echo ""

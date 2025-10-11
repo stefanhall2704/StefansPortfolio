@@ -64,14 +64,14 @@ jobs:
           #!/bin/bash
           set -e
           
-          cd /home/stefan/Documents/Personal/kubernetes
+          cd /home/stefan/Documents/Personal/StefansPortfolio
           
           # Pull latest changes
           git pull origin main
           
-          # Deploy portfolio using the main k8s structure
-          chmod +x scripts/deploy-to-k8s.sh
-          ./scripts/deploy-to-k8s.sh portfolio latest hallphotography
+          # Deploy portfolio using the portfolio-specific k8s structure
+          chmod +x k8s/deploy-portfolio-with-cloudflare.sh
+          ./k8s/deploy-portfolio-with-cloudflare.sh
           
           # Verify deployment
           echo "✅ Portfolio app deployed successfully!"
