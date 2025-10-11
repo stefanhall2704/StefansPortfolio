@@ -1385,9 +1385,9 @@ const TracerouteVisualization = () => {
   };
 
   return (
-    <div>
-      <section className="py-20 px-4">
-        <div className="w-[85%] mx-auto max-w-none">
+    <section className="py-20 px-4">
+      <div className="w-[85%] mx-auto max-w-none">
+        <div>
         <div
           ref={ref}
           className={`card-modern p-6 slide-up ${inView ? 'opacity-100' : 'opacity-0'}`}
@@ -1430,7 +1430,8 @@ const TracerouteVisualization = () => {
             </button>
           </div>
 
-          {traceResult.length > 0 && (
+          <div>
+            {traceResult.length > 0 && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
               {/* Network Hops - Left Side */}
               <div className="lg:col-span-1">
@@ -2263,10 +2264,11 @@ const TracerouteVisualization = () => {
               </div>
             </div>
           )}
+          </div>
+        </div>
         </div>
       </div>
     </section>
-    </div>
   );
 };
 
