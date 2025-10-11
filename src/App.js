@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useInView } from "react-intersection-observer";
 
@@ -3399,6 +3399,274 @@ const IncidentManagementBridge = () => {
   );
 };
 
+const InteractiveNetworkVisualization = () => {
+  const [visibleNodes, setVisibleNodes] = useState(1);
+  const [flippedNodes, setFlippedNodes] = useState(new Set());
+  const containerRef = useRef(null);
+
+  // Node data with front/back information
+  const nodeData = [
+    {
+      id: 1,
+      position: { x: 50, y: 50 },
+      front: { title: "Site Reliability Engineer", icon: "fas fa-server", color: "from-blue-500 to-cyan-500" },
+      back: {
+        title: "Core Expertise",
+        content: "Elite SRE with 8+ years managing mission-critical systems serving millions of users. Specialized in high-availability architecture, incident response, and infrastructure automation.",
+        metric: "99.9% Uptime Achieved"
+      }
+    },
+    {
+      id: 2,
+      position: { x: 25, y: 30 },
+      front: { title: "Auto-Healing Systems", icon: "fas fa-magic", color: "from-green-500 to-emerald-500" },
+      back: {
+        title: "Self-Healing IIS",
+        content: "Developed automated healing systems for 2,000+ IIS sites. Reduced manual intervention by 80% through intelligent monitoring and automated recovery procedures.",
+        metric: "2,000+ Sites Auto-Healed"
+      }
+    },
+    {
+      id: 3,
+      position: { x: 75, y: 30 },
+      front: { title: "Network Engineering", icon: "fas fa-network-wired", color: "from-purple-500 to-pink-500" },
+      back: {
+        title: "Infrastructure Mastery",
+        content: "Expert in network architecture, routing protocols, and distributed systems. Deep understanding of OSI model, TCP/IP, and modern networking technologies.",
+        metric: "18+ Hop Traceroutes"
+      }
+    },
+    {
+      id: 4,
+      position: { x: 15, y: 60 },
+      front: { title: "Rust Development", icon: "fas fa-code", color: "from-orange-500 to-red-500" },
+      back: {
+        title: "Systems Programming",
+        content: "Pioneer in Rust-based enterprise solutions. Developed high-performance routing systems and infrastructure tools with memory safety and concurrency excellence.",
+        metric: "Zero Memory Leaks"
+      }
+    },
+    {
+      id: 5,
+      position: { x: 85, y: 60 },
+      front: { title: "What is BGP?", icon: "fas fa-route", color: "from-indigo-500 to-blue-500" },
+      back: {
+        title: "Border Gateway Protocol",
+        content: "BGP is the routing protocol that makes the internet work. It determines the best paths for data to travel between autonomous systems, enabling global connectivity.",
+        metric: "Internet Backbone"
+      }
+    },
+    {
+      id: 6,
+      position: { x: 35, y: 80 },
+      front: { title: "Cloud Architecture", icon: "fas fa-cloud", color: "from-cyan-500 to-blue-500" },
+      back: {
+        title: "Scalable Systems",
+        content: "Designed and implemented cloud-native architectures handling millions of requests. Expert in Kubernetes, Docker, and microservices patterns.",
+        metric: "50% Cost Optimization"
+      }
+    },
+    {
+      id: 7,
+      position: { x: 65, y: 80 },
+      front: { title: "TCP 3-Way Handshake", icon: "fas fa-handshake", color: "from-emerald-500 to-teal-500" },
+      back: {
+        title: "Connection Establishment",
+        content: "TCP's three-way handshake (SYN → SYN-ACK → ACK) establishes reliable connections. SYN initiates, SYN-ACK acknowledges and responds, ACK confirms - ensuring data integrity.",
+        metric: "Reliable Transport"
+      }
+    },
+    {
+      id: 8,
+      position: { x: 50, y: 90 },
+      front: { title: "DevOps Culture", icon: "fas fa-users-cog", color: "from-pink-500 to-rose-500" },
+      back: {
+        title: "Collaborative Engineering",
+        content: "Champion of DevOps culture promoting collaboration between development and operations. Implemented CI/CD pipelines, monitoring, and incident management frameworks.",
+        metric: "93% Test Coverage"
+      }
+    }
+  ];
+
+  // Connections between nodes
+  const connections = [
+    { from: 1, to: 2 }, { from: 1, to: 3 }, { from: 2, to: 4 },
+    { from: 3, to: 5 }, { from: 4, to: 6 }, { from: 5, to: 7 },
+    { from: 6, to: 8 }, { from: 7, to: 8 }, { from: 1, to: 8 }
+  ];
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Gradually reveal nodes as user scrolls deeper
+            const scrollProgress = Math.min(1, entry.intersectionRatio * 2);
+            const nodesToShow = Math.min(8, Math.max(1, Math.ceil(scrollProgress * 8)));
+            setVisibleNodes(nodesToShow);
+          }
+        });
+      },
+      {
+        threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+        rootMargin: '0px 0px -100px 0px'
+      }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  const toggleNodeFlip = (nodeId) => {
+    setFlippedNodes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(nodeId)) {
+        newSet.delete(nodeId);
+      } else {
+        newSet.add(nodeId);
+      }
+      return newSet;
+    });
+  };
+
+  return (
+    <section className="py-20 px-4 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto">
+        <div
+          ref={containerRef}
+          className="relative h-screen flex items-center justify-center"
+        >
+          {/* Title */}
+          <div className="absolute top-8 left-1/2 transform -translate-x-1/2 text-center z-10">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+              Interactive Network Journey
+            </h2>
+            <p className="text-slate-400 text-sm md:text-base">
+              Scroll to explore my expertise network • Click nodes to learn more
+            </p>
+          </div>
+
+          {/* Network Visualization */}
+          <div className="relative w-full h-full max-w-4xl mx-auto">
+            <svg
+              className="absolute inset-0 w-full h-full"
+              style={{ zIndex: 1 }}
+            >
+              {/* Connection lines */}
+              {connections.map((conn, index) => {
+                const fromNode = nodeData.find(n => n.id === conn.from);
+                const toNode = nodeData.find(n => n.id === conn.to);
+
+                if (!fromNode || !toNode || fromNode.id > visibleNodes || toNode.id > visibleNodes) return null;
+
+                return (
+                  <line
+                    key={index}
+                    x1={`${fromNode.position.x}%`}
+                    y1={`${fromNode.position.y}%`}
+                    x2={`${toNode.position.x}%`}
+                    y2={`${toNode.position.y}%`}
+                    stroke="url(#gradient)"
+                    strokeWidth="2"
+                    strokeDasharray={conn.from === 1 && conn.to === 8 ? "5,5" : "none"}
+                    className="animate-pulse"
+                    opacity="0.6"
+                  />
+                );
+              })}
+
+              {/* Gradient definition */}
+              <defs>
+                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#3b82f6" />
+                  <stop offset="50%" stopColor="#8b5cf6" />
+                  <stop offset="100%" stopColor="#ec4899" />
+                </linearGradient>
+              </defs>
+            </svg>
+
+            {/* Nodes */}
+            {nodeData.map((node) => {
+              if (node.id > visibleNodes) return null;
+
+              const isFlipped = flippedNodes.has(node.id);
+              const isVisible = node.id <= visibleNodes;
+
+              return (
+                <div
+                  key={node.id}
+                  className={`absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all duration-1000 ${
+                    isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+                  }`}
+                  style={{
+                    left: `${node.position.x}%`,
+                    top: `${node.position.y}%`,
+                    zIndex: 2
+                  }}
+                  onClick={() => toggleNodeFlip(node.id)}
+                >
+                  <div className="relative w-24 h-24 md:w-32 md:h-32 perspective-1000">
+                    <div
+                      className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${
+                        isFlipped ? 'rotate-y-180' : ''
+                      }`}
+                    >
+                      {/* Front of card */}
+                      <div className="absolute inset-0 w-full h-full backface-hidden rounded-2xl shadow-2xl border border-slate-600/50 overflow-hidden">
+                        <div className={`w-full h-full bg-gradient-to-br ${node.front.color} flex flex-col items-center justify-center p-3 text-white`}>
+                          <div className="w-8 h-8 md:w-10 md:h-10 bg-white/20 rounded-full flex items-center justify-center mb-2">
+                            <i className={`${node.front.icon} text-sm md:text-base`}></i>
+                          </div>
+                          <h3 className="text-xs md:text-sm font-semibold text-center leading-tight">
+                            {node.front.title}
+                          </h3>
+                        </div>
+                      </div>
+
+                      {/* Back of card */}
+                      <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180 rounded-2xl shadow-2xl border border-slate-600/50 overflow-hidden">
+                        <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex flex-col p-3 text-white">
+                          <h3 className="text-xs md:text-sm font-semibold text-cyan-400 mb-2 text-center">
+                            {node.back.title}
+                          </h3>
+                          <p className="text-xs text-slate-300 leading-tight mb-2 flex-1">
+                            {node.back.content}
+                          </p>
+                          <div className="text-xs font-semibold text-emerald-400 text-center">
+                            {node.back.metric}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Hover indicator */}
+                    <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-slate-400 whitespace-nowrap opacity-0 hover:opacity-100 transition-opacity">
+                      Click to flip
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Scroll indicator */}
+          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center">
+            <div className="text-slate-400 text-sm mb-2">
+              Scroll to reveal network nodes
+            </div>
+            <div className="w-6 h-10 border-2 border-slate-400 rounded-full flex justify-center">
+              <div className="w-1 h-3 bg-slate-400 rounded-full mt-2 animate-bounce"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 const Main = (props) => {
   return (
     <div id="main">
@@ -3406,6 +3674,7 @@ const Main = (props) => {
         <div className="content">
           <Info />
           <Story />
+        <InteractiveNetworkVisualization />
         <TLSHandshakeAnimation />
         <TracerouteVisualization />
           <SelfHealing />
