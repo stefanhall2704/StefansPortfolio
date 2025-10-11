@@ -1385,8 +1385,9 @@ const TracerouteVisualization = () => {
   };
 
   return (
-    <section className="py-20 px-4">
-      <div className="w-[85%] mx-auto max-w-none">
+    <div>
+      <section className="py-20 px-4">
+        <div className="w-[85%] mx-auto max-w-none">
         <div
           ref={ref}
           className={`card-modern p-6 slide-up ${inView ? 'opacity-100' : 'opacity-0'}`}
@@ -2061,9 +2062,8 @@ const TracerouteVisualization = () => {
                         </div>
                       </div>
                       )}
-                    </div>
 
-                    {/* Detailed Packet Analysis - Redesigned */}
+                      {/* Detailed Packet Analysis - Redesigned */}
                     <div className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 rounded-2xl p-6 shadow-2xl border border-slate-700/50 backdrop-blur-sm">
                       <div className="flex items-center mb-6">
                         <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
@@ -2262,6 +2262,7 @@ const TracerouteVisualization = () => {
         </div>
       </div>
     </section>
+    </div>
   );
 };
 
