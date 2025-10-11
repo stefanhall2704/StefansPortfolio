@@ -1456,34 +1456,39 @@ const TracerouteVisualization = () => {
                           } backdrop-blur-sm`}
                           onClick={() => setSelectedHop(hop)}
                         >
-                          <div className="flex items-center space-x-4">
-                            <div className="flex-shrink-0 relative">
-                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg ${
-                                selectedHop?.ip === hop.ip
-                                  ? 'bg-gradient-to-r from-blue-400 to-cyan-500'
-                                  : 'bg-gradient-to-r from-slate-600 to-slate-500'
-                              }`}>
-                                {index + 1}
-                              </div>
-                              {selectedHop?.ip === hop.ip && (
-                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse border border-slate-900"></div>
-                              )}
-                            </div>
-
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-1">
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <div className="flex-shrink-0 relative">
+                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg ${
+                                    selectedHop?.ip === hop.ip
+                                      ? 'bg-gradient-to-r from-blue-400 to-cyan-500'
+                                      : 'bg-gradient-to-r from-slate-600 to-slate-500'
+                                  }`}>
+                                    {index + 1}
+                                  </div>
+                                  {selectedHop?.ip === hop.ip && (
+                                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse border border-slate-900"></div>
+                                  )}
+                                </div>
                                 <h4 className="font-semibold text-white text-sm truncate group-hover:text-blue-300 transition-colors">
                                   {hop.hostname}
                                 </h4>
-                                <span className="text-emerald-400 font-mono text-sm font-bold bg-emerald-400/10 px-2 py-0.5 rounded-md">
-                                  {hop.latency}ms
-                                </span>
                               </div>
-                              <div className="flex items-center justify-between">
-                                <span className="text-slate-400 text-xs font-mono bg-slate-700/50 px-2 py-0.5 rounded">
+                              <span className="text-emerald-400 font-mono text-sm font-bold bg-emerald-400/10 px-2 py-0.5 rounded-md">
+                                {hop.latency}ms
+                              </span>
+                            </div>
+                            <div className="space-y-2">
+                              <div>
+                                <div className="text-xs text-slate-500 mb-1">IP ADDRESS</div>
+                                <span className="text-slate-400 text-sm font-mono bg-slate-700/50 px-2 py-1 rounded block">
                                   {hop.ip}
                                 </span>
-                                <span className="text-purple-300 text-xs bg-purple-500/10 px-2 py-0.5 rounded truncate max-w-32" title={hop.description || hop.location}>
+                              </div>
+                              <div>
+                                <div className="text-xs text-slate-500 mb-1">LOCATION/DESCRIPTION</div>
+                                <span className="text-purple-300 text-sm bg-purple-500/10 px-2 py-1 rounded block" title={hop.description || hop.location}>
                                   {hop.description || hop.location}
                                 </span>
                               </div>
@@ -1500,16 +1505,16 @@ const TracerouteVisualization = () => {
                       <i className="fas fa-chart-line mr-2 text-blue-400"></i>
                       Network Metrics
                     </h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="text-center p-3 bg-slate-800/50 rounded-lg border border-slate-600/30">
+                    <div className="space-y-3">
+                      <div className="text-center p-4 bg-slate-800/50 rounded-lg border border-slate-600/30">
                         <div className="text-2xl font-bold text-blue-400 mb-1">{traceResult.length}</div>
-                        <div className="text-xs text-slate-400 font-medium">Total Hops</div>
+                        <div className="text-sm text-slate-400 font-medium">Total Hops</div>
                       </div>
-                      <div className="text-center p-3 bg-slate-800/50 rounded-lg border border-slate-600/30">
+                      <div className="text-center p-4 bg-slate-800/50 rounded-lg border border-slate-600/30">
                         <div className="text-2xl font-bold text-emerald-400 mb-1">
                           {(traceResult.reduce((sum, h) => sum + h.latency, 0) / traceResult.length).toFixed(0)}
                         </div>
-                        <div className="text-xs text-slate-400 font-medium">Avg Latency</div>
+                        <div className="text-sm text-slate-400 font-medium">Avg Latency</div>
                       </div>
                     </div>
                   </div>
@@ -1522,28 +1527,25 @@ const TracerouteVisualization = () => {
                   <div className="space-y-8">
                     {/* Packet Header */}
                     <div className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 rounded-2xl p-6 shadow-2xl border border-slate-700/50 backdrop-blur-sm">
-                      <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-xl">
-                            <i className="fas fa-network-wired text-white"></i>
-                          </div>
-                          <div>
-                            <h3 className="text-2xl font-bold text-white">
-                              Packet Capture
-                            </h3>
-                            <p className="text-cyan-300 font-medium">{selectedHop.hostname}</p>
-                          </div>
+                      <div className="text-center mb-6">
+                        <div className="w-16 h-16 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-xl mx-auto mb-4">
+                          <i className="fas fa-network-wired text-white text-2xl"></i>
                         </div>
-                        <button
-                          onClick={() => setSelectedHop(null)}
-                          className="w-10 h-10 bg-slate-700 hover:bg-slate-600 rounded-xl flex items-center justify-center text-gray-400 hover:text-white transition-all duration-300 shadow-lg"
-                        >
-                          <i className="fas fa-times"></i>
-                        </button>
+                        <h3 className="text-2xl font-bold text-white mb-2">
+                          Packet Capture
+                        </h3>
+                        <p className="text-cyan-300 font-medium">{selectedHop.hostname}</p>
+                      </div>
+                      <button
+                        onClick={() => setSelectedHop(null)}
+                        className="absolute top-4 right-4 w-10 h-10 bg-slate-700 hover:bg-slate-600 rounded-xl flex items-center justify-center text-gray-400 hover:text-white transition-all duration-300 shadow-lg"
+                      >
+                        <i className="fas fa-times"></i>
+                      </button>
                       </div>
 
                       {/* OSI Model Container */}
-                      <div className={`${selectedOsiLayer ? 'lg:flex-1 lg:max-w-md' : ''}`}>
+                      <div>
                         {/* Local Machine OSI Stack (Before Network) */}
                         <div className="p-6 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-indigo-500/10 rounded-xl border border-cyan-400/30 backdrop-blur-sm">
                         <div className="flex items-center mb-4">
@@ -1681,8 +1683,8 @@ const TracerouteVisualization = () => {
                           <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-25rem)]">
                             {generateLayerPackets(selectedOsiLayer, selectedHop).map((packet, index) => (
                               <div key={index} className="bg-slate-800/60 rounded-lg border border-slate-600/30 p-4">
-                                <div className="flex items-center justify-between mb-3">
-                                  <div className="flex items-center space-x-3">
+                                <div className="mb-3">
+                                  <div className="flex items-center space-x-3 mb-2">
                                     <div className={`w-3 h-3 rounded-full ${
                                       packet.protocol === 'HTTPS' || packet.protocol === 'TLS 1.3' ? 'bg-green-400 animate-pulse' :
                                       packet.protocol === 'TCP' ? 'bg-blue-400' :
@@ -1698,16 +1700,16 @@ const TracerouteVisualization = () => {
                                   </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div className="space-y-3 mb-4">
                                   <div>
                                     <div className="text-xs text-slate-500 mb-1">SOURCE</div>
-                                    <div className="text-cyan-400 font-mono text-sm bg-cyan-500/10 px-2 py-1 rounded">
+                                    <div className="text-cyan-400 font-mono text-sm bg-cyan-500/10 px-2 py-1 rounded block">
                                       {packet.source}
                                     </div>
                                   </div>
                                   <div>
                                     <div className="text-xs text-slate-500 mb-1">DESTINATION</div>
-                                    <div className="text-purple-400 font-mono text-sm bg-purple-500/10 px-2 py-1 rounded">
+                                    <div className="text-purple-400 font-mono text-sm bg-purple-500/10 px-2 py-1 rounded block">
                                       {packet.dest}
                                     </div>
                                   </div>
@@ -1784,7 +1786,7 @@ const TracerouteVisualization = () => {
                                           ))}
                                         </div>
                                       </div>
-                                      <div className="grid grid-cols-2 gap-4">
+                                      <div className="space-y-3">
                                         <div>
                                           <div className="text-xs text-slate-500 mb-1">SEQ NUMBER</div>
                                           <div className="text-green-400 font-mono text-sm">{packet.details.seqNumber}</div>
@@ -1795,8 +1797,6 @@ const TracerouteVisualization = () => {
                                             <div className="text-blue-400 font-mono text-sm">{packet.details.ackNumber}</div>
                                           </div>
                                         )}
-                                      </div>
-                                      <div className="grid grid-cols-2 gap-4">
                                         <div>
                                           <div className="text-xs text-slate-500 mb-1">WINDOW SIZE</div>
                                           <div className="text-purple-400 font-mono text-sm">{packet.details.windowSize}</div>
@@ -1813,7 +1813,7 @@ const TracerouteVisualization = () => {
 
                                   {packet.protocol === 'IP' && (
                                     <div className="space-y-3">
-                                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                      <div className="grid grid-cols-1 gap-3">
                                         <div>
                                           <div className="text-xs text-slate-500 mb-1">VERSION</div>
                                           <div className="text-blue-400 font-mono text-sm">IPv{packet.details.version}</div>
@@ -1831,16 +1831,16 @@ const TracerouteVisualization = () => {
                                           <div className="text-orange-400 font-mono text-sm">{packet.details.checksum}</div>
                                         </div>
                                       </div>
-                                      <div className="grid grid-cols-2 gap-4">
+                                      <div className="space-y-3">
                                         <div>
                                           <div className="text-xs text-slate-500 mb-1">SOURCE IP</div>
-                                          <div className="text-cyan-400 font-mono text-sm bg-cyan-500/10 px-2 py-1 rounded">
+                                          <div className="text-cyan-400 font-mono text-sm bg-cyan-500/10 px-2 py-1 rounded block">
                                             {packet.details.sourceIP}
                                           </div>
                                         </div>
                                         <div>
                                           <div className="text-xs text-slate-500 mb-1">DESTINATION IP</div>
-                                          <div className="text-purple-400 font-mono text-sm bg-purple-500/10 px-2 py-1 rounded">
+                                          <div className="text-purple-400 font-mono text-sm bg-purple-500/10 px-2 py-1 rounded block">
                                             {packet.details.destIP}
                                           </div>
                                         </div>
@@ -1850,21 +1850,21 @@ const TracerouteVisualization = () => {
 
                                   {packet.protocol === 'Ethernet' && (
                                     <div className="space-y-3">
-                                      <div className="grid grid-cols-2 gap-4">
+                                      <div className="space-y-3">
                                         <div>
                                           <div className="text-xs text-slate-500 mb-1">SOURCE MAC</div>
-                                          <div className="text-green-400 font-mono text-sm bg-green-500/10 px-2 py-1 rounded">
+                                          <div className="text-green-400 font-mono text-sm bg-green-500/10 px-2 py-1 rounded block">
                                             {packet.details.sourceMAC}
                                           </div>
                                         </div>
                                         <div>
                                           <div className="text-xs text-slate-500 mb-1">DESTINATION MAC</div>
-                                          <div className="text-blue-400 font-mono text-sm bg-blue-500/10 px-2 py-1 rounded">
+                                          <div className="text-blue-400 font-mono text-sm bg-blue-500/10 px-2 py-1 rounded block">
                                             {packet.details.destMAC}
                                           </div>
                                         </div>
                                       </div>
-                                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                      <div className="grid grid-cols-1 gap-3">
                                         <div>
                                           <div className="text-xs text-slate-500 mb-1">ETHERTYPE</div>
                                           <div className="text-purple-400 font-mono text-sm">{packet.details.ethertype}</div>
@@ -1885,7 +1885,7 @@ const TracerouteVisualization = () => {
 
                                   {packet.protocol === 'Physical' && (
                                     <div className="space-y-3">
-                                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                      <div className="grid grid-cols-1 gap-3">
                                         <div>
                                           <div className="text-xs text-slate-500 mb-1">SIGNAL TYPE</div>
                                           <div className="text-blue-400 font-mono text-sm">{packet.details.signalType}</div>
@@ -1934,88 +1934,133 @@ const TracerouteVisualization = () => {
                         </div>
                       )}
 
-                      {/* Packet List - Wireshark Style - Redesigned */}
-                      <div className="space-y-3">
-                        <div className="grid grid-cols-12 gap-3 text-xs font-semibold bg-gradient-to-r from-slate-800 to-slate-700 p-4 rounded-xl text-slate-200 border border-slate-600/50">
-                          <div className="col-span-1 text-center">#</div>
-                          <div className="col-span-3">Timestamp</div>
-                          <div className="col-span-3">Source</div>
-                          <div className="col-span-3">Destination</div>
-                          <div className="col-span-2 text-center">Protocol</div>
-                        </div>
+                      {/* Packet List - Wireshark Style - Vertical Layout */}
+                      {!selectedOsiLayer && (
+                      <div className="space-y-4">
 
                         {/* TCP Handshake Packets - Redesigned */}
                         <div className="space-y-2">
                           {/* SYN Packet */}
-                          <div className="group grid grid-cols-12 gap-3 text-xs font-mono bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-400/30 p-4 rounded-xl hover:from-blue-500/20 hover:to-cyan-500/20 transition-all duration-300 cursor-pointer hover:shadow-lg hover:shadow-blue-500/10">
-                            <div className="col-span-1 flex items-center justify-center">
-                              <span className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xs">1</span>
+                          <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-400/30 p-4 rounded-xl">
+                            <div className="flex items-center space-x-3 mb-3">
+                              <span className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm">1</span>
+                              <span className="font-semibold text-white">TCP SYN</span>
+                              <span className="bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded text-xs font-bold">TCP</span>
                             </div>
-                            <div className="col-span-3 text-slate-300 font-medium">0.000000</div>
-                            <div className="col-span-3 text-cyan-300 font-semibold bg-cyan-500/10 px-2 py-1 rounded">{traceResult[0]?.ip || '192.168.1.100'}</div>
-                            <div className="col-span-3 text-purple-300 font-semibold bg-purple-500/10 px-2 py-1 rounded">{selectedHop.ip}</div>
-                            <div className="col-span-2 flex items-center justify-center">
-                              <span className="bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded font-bold">TCP</span>
+                            <div className="space-y-2 text-sm">
+                              <div>
+                                <span className="text-slate-400">Time:</span>
+                                <span className="text-slate-300 font-mono ml-2">0.000000</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-400">Source:</span>
+                                <span className="text-cyan-300 font-mono ml-2 bg-cyan-500/10 px-2 py-1 rounded">{traceResult[0]?.ip || '192.168.1.100'}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-400">Destination:</span>
+                                <span className="text-purple-300 font-mono ml-2 bg-purple-500/10 px-2 py-1 rounded">{selectedHop.ip}</span>
+                              </div>
                             </div>
                           </div>
 
                           {/* SYN-ACK Packet */}
-                          <div className="group grid grid-cols-12 gap-3 text-xs font-mono bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-400/30 p-4 rounded-xl hover:from-green-500/20 hover:to-emerald-500/20 transition-all duration-300 cursor-pointer hover:shadow-lg hover:shadow-green-500/10">
-                            <div className="col-span-1 flex items-center justify-center">
-                              <span className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-xs">2</span>
+                          <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-400/30 p-4 rounded-xl">
+                            <div className="flex items-center space-x-3 mb-3">
+                              <span className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-sm">2</span>
+                              <span className="font-semibold text-white">TCP SYN-ACK</span>
+                              <span className="bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded text-xs font-bold">TCP</span>
                             </div>
-                            <div className="col-span-3 text-slate-300 font-medium">0.024123</div>
-                            <div className="col-span-3 text-purple-300 font-semibold bg-purple-500/10 px-2 py-1 rounded">{selectedHop.ip}</div>
-                            <div className="col-span-3 text-cyan-300 font-semibold bg-cyan-500/10 px-2 py-1 rounded">{traceResult[0]?.ip || '192.168.1.100'}</div>
-                            <div className="col-span-2 flex items-center justify-center">
-                              <span className="bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded font-bold">TCP</span>
+                            <div className="space-y-2 text-sm">
+                              <div>
+                                <span className="text-slate-400">Time:</span>
+                                <span className="text-slate-300 font-mono ml-2">0.024123</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-400">Source:</span>
+                                <span className="text-purple-300 font-mono ml-2 bg-purple-500/10 px-2 py-1 rounded">{selectedHop.ip}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-400">Destination:</span>
+                                <span className="text-cyan-300 font-mono ml-2 bg-cyan-500/10 px-2 py-1 rounded">{traceResult[0]?.ip || '192.168.1.100'}</span>
+                              </div>
                             </div>
                           </div>
 
                           {/* ACK Packet */}
-                          <div className="group grid grid-cols-12 gap-3 text-xs font-mono bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-400/30 p-4 rounded-xl hover:from-emerald-500/20 hover:to-teal-500/20 transition-all duration-300 cursor-pointer hover:shadow-lg hover:shadow-emerald-500/10">
-                            <div className="col-span-1 flex items-center justify-center">
-                              <span className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-xs">3</span>
+                          <div className="bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-400/30 p-4 rounded-xl">
+                            <div className="flex items-center space-x-3 mb-3">
+                              <span className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-sm">3</span>
+                              <span className="font-semibold text-white">TCP ACK</span>
+                              <span className="bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded text-xs font-bold">TCP</span>
                             </div>
-                            <div className="col-span-3 text-slate-300 font-medium">0.024456</div>
-                            <div className="col-span-3 text-cyan-300 font-semibold bg-cyan-500/10 px-2 py-1 rounded">{traceResult[0]?.ip || '192.168.1.100'}</div>
-                            <div className="col-span-3 text-purple-300 font-semibold bg-purple-500/10 px-2 py-1 rounded">{selectedHop.ip}</div>
-                            <div className="col-span-2 flex items-center justify-center">
-                              <span className="bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded font-bold">TCP</span>
+                            <div className="space-y-2 text-sm">
+                              <div>
+                                <span className="text-slate-400">Time:</span>
+                                <span className="text-slate-300 font-mono ml-2">0.024456</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-400">Source:</span>
+                                <span className="text-cyan-300 font-mono ml-2 bg-cyan-500/10 px-2 py-1 rounded">{traceResult[0]?.ip || '192.168.1.100'}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-400">Destination:</span>
+                                <span className="text-purple-300 font-mono ml-2 bg-purple-500/10 px-2 py-1 rounded">{selectedHop.ip}</span>
+                              </div>
                             </div>
                           </div>
 
                           {selectedHop.isSecure && (
                             <>
                               {/* Client Hello TLS */}
-                              <div className="group grid grid-cols-12 gap-3 text-xs font-mono bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-400/30 p-4 rounded-xl hover:from-purple-500/20 hover:to-indigo-500/20 transition-all duration-300 cursor-pointer hover:shadow-lg hover:shadow-purple-500/10">
-                                <div className="col-span-1 flex items-center justify-center">
-                                  <span className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xs">4</span>
+                              <div className="bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-400/30 p-4 rounded-xl">
+                                <div className="flex items-center space-x-3 mb-3">
+                                  <span className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm">4</span>
+                                  <span className="font-semibold text-white">TLS Client Hello</span>
+                                  <span className="bg-pink-500/20 text-pink-300 px-2 py-1 rounded text-xs font-bold">TLS</span>
                                 </div>
-                                <div className="col-span-3 text-slate-300 font-medium">0.024789</div>
-                                <div className="col-span-3 text-cyan-300 font-semibold bg-cyan-500/10 px-2 py-1 rounded">{traceResult[0]?.ip || '192.168.1.100'}</div>
-                                <div className="col-span-3 text-purple-300 font-semibold bg-purple-500/10 px-2 py-1 rounded">{selectedHop.ip}</div>
-                                <div className="col-span-2 flex items-center justify-center">
-                                  <span className="bg-pink-500/20 text-pink-300 px-2 py-1 rounded font-bold">TLS</span>
+                                <div className="space-y-2 text-sm">
+                                  <div>
+                                    <span className="text-slate-400">Time:</span>
+                                    <span className="text-slate-300 font-mono ml-2">0.024789</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-slate-400">Source:</span>
+                                    <span className="text-cyan-300 font-mono ml-2 bg-cyan-500/10 px-2 py-1 rounded">{traceResult[0]?.ip || '192.168.1.100'}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-slate-400">Destination:</span>
+                                    <span className="text-purple-300 font-mono ml-2 bg-purple-500/10 px-2 py-1 rounded">{selectedHop.ip}</span>
+                                  </div>
                                 </div>
                               </div>
 
                               {/* Server Hello TLS */}
-                              <div className="group grid grid-cols-12 gap-3 text-xs font-mono bg-gradient-to-r from-pink-500/10 to-rose-500/10 border border-pink-400/30 p-4 rounded-xl hover:from-pink-500/20 hover:to-rose-500/20 transition-all duration-300 cursor-pointer hover:shadow-lg hover:shadow-pink-500/10">
-                                <div className="col-span-1 flex items-center justify-center">
-                                  <span className="w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center text-white font-bold text-xs">5</span>
+                              <div className="bg-gradient-to-r from-pink-500/10 to-rose-500/10 border border-pink-400/30 p-4 rounded-xl">
+                                <div className="flex items-center space-x-3 mb-3">
+                                  <span className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm">5</span>
+                                  <span className="font-semibold text-white">TLS Server Hello</span>
+                                  <span className="bg-pink-500/20 text-pink-300 px-2 py-1 rounded text-xs font-bold">TLS</span>
                                 </div>
-                                <div className="col-span-3 text-slate-300 font-medium">0.025012</div>
-                                <div className="col-span-3 text-purple-300 font-semibold bg-purple-500/10 px-2 py-1 rounded">{selectedHop.ip}</div>
-                                <div className="col-span-3 text-cyan-300 font-semibold bg-cyan-500/10 px-2 py-1 rounded">{traceResult[0]?.ip || '192.168.1.100'}</div>
-                                <div className="col-span-2 flex items-center justify-center">
-                                  <span className="bg-pink-500/20 text-pink-300 px-2 py-1 rounded font-bold">TLS</span>
+                                <div className="space-y-2 text-sm">
+                                  <div>
+                                    <span className="text-slate-400">Time:</span>
+                                    <span className="text-slate-300 font-mono ml-2">0.025012</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-slate-400">Source:</span>
+                                    <span className="text-purple-300 font-mono ml-2 bg-purple-500/10 px-2 py-1 rounded">{selectedHop.ip}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-slate-400">Destination:</span>
+                                    <span className="text-cyan-300 font-mono ml-2 bg-cyan-500/10 px-2 py-1 rounded">{traceResult[0]?.ip || '192.168.1.100'}</span>
+                                  </div>
                                 </div>
                               </div>
                             </>
                           )}
                         </div>
                       </div>
+                      )}
                     </div>
 
                     {/* Detailed Packet Analysis - Redesigned */}
