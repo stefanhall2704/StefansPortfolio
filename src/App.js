@@ -495,8 +495,13 @@ const TracerouteVisualization = () => {
   const [isTracing, setIsTracing] = useState(false);
   const [traceResult, setTraceResult] = useState([]);
   const [selectedHop, setSelectedHop] = useState(null);
+  const [selectedOsiLayer, setSelectedOsiLayer] = useState(null);
   const [dnsStatus, setDnsStatus] = useState('');
-  const { ref, inView } = useInView({ threshold: 0.3 });
+  const [traceProgress, setTraceProgress] = useState(0);
+  const { ref, inView } = useInView({
+    threshold: 0.1,
+    rootMargin: '50px 0px -100px 0px'
+  });
 
   const resolveDNS = async (domain) => {
     try {
@@ -628,39 +633,215 @@ const TracerouteVisualization = () => {
     return hops;
   };
 
+  // Generate realistic packet data for each OSI layer
+  const generateLayerPackets = (layer, selectedHop) => {
+    const packets = [];
+
+    switch(layer) {
+      case 7: // Application Layer
+        packets.push({
+          type: selectedHop.isSecure ? 'HTTPS Request' : 'HTTP Request',
+          timestamp: '0.000000',
+          source: '127.0.0.1:xxxxx',
+          dest: `${selectedHop.ip}:${selectedHop.port}`,
+          protocol: selectedHop.isSecure ? 'HTTPS' : 'HTTP',
+          size: '512 bytes',
+          details: {
+            method: 'GET',
+            uri: selectedHop.hostname.includes('google') ? '/search?q=network+analysis' : '/',
+            headers: {
+              'Host': selectedHop.hostname,
+              'User-Agent': 'Mozilla/5.0 (Network Analyzer)',
+              'Accept': 'text/html,application/xhtml+xml',
+              ...(selectedHop.isSecure && {
+                'Upgrade-Insecure-Requests': '1',
+                'Sec-Fetch-Site': 'cross-site'
+              })
+            },
+            payload: selectedHop.isSecure ? '[TLS Encrypted Data]' : 'GET / HTTP/1.1\r\nHost: ' + selectedHop.hostname
+          }
+        });
+        break;
+
+      case 6: // Presentation Layer
+        if (selectedHop.isSecure) {
+          packets.push({
+            type: 'TLS Client Hello',
+            timestamp: '0.000123',
+            source: '127.0.0.1:xxxxx',
+            dest: `${selectedHop.ip}:${selectedHop.port}`,
+            protocol: 'TLS 1.3',
+            size: '256 bytes',
+            details: {
+              version: 'TLS 1.3',
+              cipherSuites: ['TLS_AES_256_GCM_SHA384', 'TLS_CHACHA20_POLY1305_SHA256'],
+              extensions: ['server_name', 'supported_groups', 'signature_algorithms'],
+              sessionKeys: {
+                clientRandom: '0x' + Math.random().toString(16).substr(2, 32),
+                masterSecret: '[Generated during handshake]',
+                sessionTicket: '0x' + Math.random().toString(16).substr(2, 64)
+              }
+            }
+          });
+        }
+        break;
+
+      case 5: // Session Layer
+        packets.push({
+          type: 'TCP SYN',
+          timestamp: '0.000456',
+          source: '127.0.0.1:xxxxx',
+          dest: `${selectedHop.ip}:${selectedHop.port}`,
+          protocol: 'TCP',
+          size: '64 bytes',
+          details: {
+            flags: ['SYN'],
+            seqNumber: Math.floor(Math.random() * 1000000),
+            windowSize: 65535,
+            options: ['MSS: 1460', 'SACK_PERMITTED', 'TIMESTAMP']
+          }
+        });
+        packets.push({
+          type: 'TCP SYN-ACK',
+          timestamp: '0.001234',
+          source: `${selectedHop.ip}:${selectedHop.port}`,
+          dest: '127.0.0.1:xxxxx',
+          protocol: 'TCP',
+          size: '64 bytes',
+          details: {
+            flags: ['SYN', 'ACK'],
+            seqNumber: Math.floor(Math.random() * 1000000),
+            ackNumber: packets[0].details.seqNumber + 1,
+            windowSize: 64240
+          }
+        });
+        break;
+
+      case 4: // Transport Layer
+        const seqNum = Math.floor(Math.random() * 1000000);
+        packets.push({
+          type: 'TCP ACK',
+          timestamp: '0.001567',
+          source: '127.0.0.1:xxxxx',
+          dest: `${selectedHop.ip}:${selectedHop.port}`,
+          protocol: 'TCP',
+          size: '52 bytes',
+          details: {
+            flags: ['ACK'],
+            seqNumber: seqNum,
+            ackNumber: packets[packets.length - 1]?.details.seqNumber + 1 || seqNum + 1,
+            windowSize: 65535,
+            checksum: '0x' + Math.random().toString(16).substr(2, 8)
+          }
+        });
+        break;
+
+      case 3: // Network Layer
+        packets.push({
+          type: 'IP Packet',
+          timestamp: '0.001890',
+          source: '127.0.0.1',
+          dest: selectedHop.ip,
+          protocol: 'IP',
+          size: '576 bytes',
+          details: {
+            version: 4,
+            headerLength: 20,
+            ttl: selectedHop.hostname.includes('router.home') ? 64 : Math.floor(Math.random() * 50) + 10,
+            protocol: 6, // TCP
+            sourceIP: '127.0.0.1',
+            destIP: selectedHop.ip,
+            checksum: '0x' + Math.random().toString(16).substr(2, 8),
+            options: selectedHop.hostname.includes('router.home') ? [] : ['Router Alert']
+          }
+        });
+        break;
+
+      case 2: // Data Link Layer
+        const isLocal = selectedHop.hostname.includes('router.home');
+        packets.push({
+          type: 'Ethernet Frame',
+          timestamp: '0.002123',
+          source: isLocal ? 'aa:bb:cc:dd:ee:ff' : '11:22:33:44:55:66',
+          dest: isLocal ? 'ff:ff:ff:ff:ff:ff' : '77:88:99:aa:bb:cc',
+          protocol: 'Ethernet',
+          size: '590 bytes',
+          details: {
+            destMAC: isLocal ? 'ff:ff:ff:ff:ff:ff' : '77:88:99:aa:bb:cc',
+            sourceMAC: isLocal ? 'aa:bb:cc:dd:ee:ff' : '11:22:33:44:55:66',
+            ethertype: '0x0800', // IPv4
+            vlanTag: isLocal ? null : 'VLAN 100',
+            fcs: '0x' + Math.random().toString(16).substr(2, 8)
+          }
+        });
+        break;
+
+      case 1: // Physical Layer
+        packets.push({
+          type: 'Network Signal',
+          timestamp: '0.002456',
+          source: 'Local NIC',
+          dest: selectedHop.hostname,
+          protocol: 'Physical',
+          size: '590 bytes + overhead',
+          details: {
+            signalType: selectedHop.hostname.includes('router.home') ? '802.11 WiFi' : 'Ethernet 1000BASE-T',
+            frequency: selectedHop.hostname.includes('router.home') ? '2.4 GHz' : 'N/A',
+            modulation: selectedHop.hostname.includes('router.home') ? 'OFDM' : '4D-PAM5',
+            bitRate: selectedHop.hostname.includes('router.home') ? '150 Mbps' : '1 Gbps',
+            errorCorrection: 'CRC-32',
+            preamble: '0x' + Math.random().toString(16).substr(2, 16)
+          }
+        });
+        break;
+    }
+
+    return packets;
+  };
+
   const performRealTraceroute = async (domainName) => {
     setIsTracing(true);
     setTraceResult([]);
     setSelectedHop(null);
+    setSelectedOsiLayer(null);
+    setTraceProgress(0);
     setDnsStatus(`Resolving DNS for ${domainName}...`);
 
     try {
       // First, resolve the domain to a real IP
       console.log(`Resolving DNS for: ${domainName}`);
       setDnsStatus(`Querying DNS servers for ${domainName}...`);
+      setTraceProgress(10);
 
       const resolvedIP = await resolveDNS(domainName);
       console.log(`✅ DNS Resolution: ${domainName} → ${resolvedIP}`);
       setDnsStatus(`✅ Resolved ${domainName} to ${resolvedIP}`);
+      setTraceProgress(20);
 
       // Generate realistic traceroute based on real IP
       const hops = generateRealisticTraceroute(domainName, resolvedIP);
+      setTraceProgress(30);
 
       // Simulate the traceroute with realistic delays
-      setDnsStatus(`Tracing network path to ${resolvedIP}...`);
+      setDnsStatus(`Tracing network path to ${resolvedIP} (${hops.length} hops)...`);
+      const progressIncrement = 70 / hops.length; // Remaining 70% for hops
+
       for (let i = 0; i < hops.length; i++) {
         const hop = hops[i];
         // Add some jitter to make it feel more realistic
-        const delay = hop.latency + Math.floor(Math.random() * 10);
-        setDnsStatus(`Hopping through ${hop.hostname} (${hop.ip})...`);
-        await new Promise(resolve => setTimeout(resolve, delay * 20)); // Scale delay for UI
+        const delay = hop.latency + Math.floor(Math.random() * 15);
+        setDnsStatus(`Hop ${i + 1}/${hops.length}: ${hop.hostname} (${hop.ip}) - ${hop.description}...`);
+        setTraceProgress(30 + (i * progressIncrement));
+        await new Promise(resolve => setTimeout(resolve, Math.max(delay * 8, 200))); // Scale delay for UI
         setTraceResult(prev => [...prev, hop]);
       }
+      setTraceProgress(100);
       setDnsStatus(`✅ Traceroute complete! Found ${hops.length} hops to ${domainName}`);
 
     } catch (error) {
       console.error('Traceroute failed:', error);
       setDnsStatus(`⚠️ DNS resolution failed, using simulated data for ${domainName}`);
+      setTraceProgress(25);
 
       // Generate fallback with hash-based IP for unknown domains
       const domainHash = domainName.split('').reduce((a, b) => {
@@ -671,20 +852,24 @@ const TracerouteVisualization = () => {
       const fallbackIP = `${Math.abs(domainHash % 256)}.${Math.abs((domainHash >> 8) % 256)}.${Math.abs((domainHash >> 16) % 256)}.${Math.abs((domainHash >> 24) % 256)}`;
 
       const fallbackHops = [
-        { ip: '192.168.1.1', hostname: 'home.router', location: 'Local Network', latency: 1, port: 80 },
-        { ip: '10.0.0.1', hostname: 'isp.gateway', location: 'ISP Gateway', latency: 5, port: 80 },
-        { ip: '172.16.0.1', hostname: 'core.router', location: 'Core Router', latency: 12, port: 443 },
-        { ip: '8.8.8.8', hostname: 'dns.google', location: 'Google DNS', latency: 25, port: 443 },
-        { ip: fallbackIP, hostname: domainName, location: 'Simulated Destination', latency: 32, port: 443, isSecure: true }
+        { ip: '192.168.1.1', hostname: 'home.router', location: 'Local Network', latency: 1, port: 80, description: 'Home router' },
+        { ip: '10.0.0.1', hostname: 'isp.gateway', location: 'ISP Gateway', latency: 5, port: 80, description: 'ISP gateway' },
+        { ip: '172.16.0.1', hostname: 'core.router', location: 'Core Router', latency: 12, port: 443, description: 'Core router' },
+        { ip: '8.8.8.8', hostname: 'dns.google', location: 'Google DNS', latency: 25, port: 443, description: 'DNS server' },
+        { ip: fallbackIP, hostname: domainName, location: 'Simulated Destination', latency: 32, port: 443, isSecure: true, description: 'Destination server' }
       ];
 
       setDnsStatus(`Tracing simulated path to ${domainName}...`);
+      const progressIncrement = 75 / fallbackHops.length;
+
       for (let i = 0; i < fallbackHops.length; i++) {
         const hop = fallbackHops[i];
-        setDnsStatus(`Simulating hop through ${hop.hostname}...`);
-        await new Promise(resolve => setTimeout(resolve, 800));
+        setDnsStatus(`Simulating hop ${i + 1}/${fallbackHops.length}: ${hop.hostname}...`);
+        setTraceProgress(25 + (i * progressIncrement));
+        await new Promise(resolve => setTimeout(resolve, 400));
         setTraceResult(prev => [...prev, hop]);
       }
+      setTraceProgress(100);
       setDnsStatus(`✅ Simulated traceroute complete for ${domainName}`);
     }
 
@@ -1273,6 +1458,395 @@ const TracerouteVisualization = () => {
                         </button>
                       </div>
 
+                      {/* Local Machine OSI Stack (Before Network) */}
+                      <div className="mt-8 p-6 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-indigo-500/10 rounded-xl border border-cyan-400/30 backdrop-blur-sm">
+                        <div className="flex items-center mb-4">
+                          <div className="w-8 h-8 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                            <i className="fas fa-desktop text-white text-xs"></i>
+                          </div>
+                          <h5 className="text-lg font-semibold text-cyan-300">Local OSI Stack</h5>
+                        </div>
+
+                        <div className="space-y-2">
+                          {[
+                            { layer: "App", protocol: "Browser HTTPS", icon: "🌐" },
+                            { layer: "Pres", protocol: "TLS 1.3", icon: "🔐" },
+                            { layer: "Sess", protocol: "TCP Handshake", icon: "🔗" },
+                            { layer: "Trans", protocol: `TCP:${selectedHop.port}`, icon: "📦" },
+                            { layer: "Net", protocol: "IP Packet", icon: "🌍" },
+                            { layer: "Data", protocol: "Ethernet", icon: "⚡" },
+                            { layer: "Phys", protocol: "WiFi 802.11", icon: "📡" }
+                          ].map((localLayer, index) => (
+                            <div key={index} className="flex items-center p-2 bg-slate-800/40 rounded-lg border border-slate-600/20">
+                              <div className="text-sm mr-2">{localLayer.icon}</div>
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-semibold text-white text-xs">{localLayer.layer}</span>
+                                  <span className="text-cyan-400 font-mono text-xs">{localLayer.protocol}</span>
+                                </div>
+                              </div>
+                              <div className="ml-2">
+                                <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="mt-3 p-2 bg-emerald-500/10 rounded-lg border border-emerald-400/30">
+                          <div className="text-center text-xs text-emerald-400 font-medium">
+                            📤 Packets Leave Device
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Network OSI Model (Current Hop Analysis) */}
+                      <div className="mt-8 p-6 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 rounded-xl border border-indigo-400/30 backdrop-blur-sm">
+                        <div className="flex items-center mb-4">
+                          <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                            <i className="fas fa-layer-group text-white text-xs"></i>
+                          </div>
+                          <h5 className="text-lg font-semibold text-indigo-300">
+                            Network OSI: {selectedHop.hostname.split('.')[0]}
+                          </h5>
+                        </div>
+
+                        <div className="space-y-3">
+                          {[
+                            { layer: 7, name: "App", protocol: selectedHop.isSecure ? "HTTPS" : "HTTP", active: true },
+                            { layer: 6, name: "Pres", protocol: selectedHop.isSecure ? "TLS 1.3" : "None", active: selectedHop.isSecure },
+                            { layer: 5, name: "Sess", protocol: "TCP Handshake", active: true },
+                            { layer: 4, name: "Trans", protocol: `TCP:${selectedHop.port}`, active: true },
+                            { layer: 3, name: "Net", protocol: `IP:${selectedHop.ip}`, active: true },
+                            { layer: 2, name: "Data", protocol: selectedHop.hostname.includes('router.home') ? "WiFi" : "Transit Eth", active: true },
+                            { layer: 1, name: "Phys", protocol: selectedHop.hostname.includes('router.home') ? "802.11" : "Fiber", active: true }
+                          ].map((osiLayer, index) => (
+                            <div key={osiLayer.layer} className="relative">
+                              <div
+                                className={`flex items-center p-3 rounded-lg border transition-all duration-300 cursor-pointer hover:shadow-lg ${
+                                  selectedOsiLayer === osiLayer.layer ? 'bg-cyan-500/20 border-cyan-400 ring-2 ring-cyan-400/50' : ''
+                                } ${
+                                  osiLayer.active ? 'bg-slate-800/60 border-cyan-400/30 hover:bg-cyan-500/10' : 'bg-slate-800/30 border-slate-600/30 hover:bg-slate-700/40'
+                                }`}
+                                onClick={() => setSelectedOsiLayer(selectedOsiLayer === osiLayer.layer ? null : osiLayer.layer)}
+                              >
+                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white font-bold text-xs mr-3 ${
+                                  osiLayer.active ? 'bg-gradient-to-r from-cyan-500 to-blue-500' : 'bg-gradient-to-r from-slate-600 to-slate-500'
+                                }`}>
+                                  {osiLayer.layer}
+                                </div>
+
+                                <div className="flex-1">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-semibold text-white text-sm">{osiLayer.name}</span>
+                                    <span className={`text-xs font-mono px-1.5 py-0.5 rounded ${
+                                      osiLayer.active ? 'bg-cyan-500/20 text-cyan-300' : 'bg-slate-600/20 text-slate-400'
+                                    }`}>
+                                      {osiLayer.protocol}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="ml-2 flex items-center">
+                                  <div className={`w-2 h-2 rounded-full ${
+                                    osiLayer.active ? 'bg-green-400 animate-pulse' : 'bg-gray-500'
+                                  }`}></div>
+                                  {osiLayer.active && (
+                                    <div className="text-green-400 text-xs font-bold animate-pulse ml-1">
+                                      →
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="mt-4 p-3 bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 rounded-lg border border-emerald-400/30">
+                          <div className="text-center text-xs text-emerald-400 font-medium">
+                            🎯 Current Hop Processing
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Interactive Packet Inspection Panel */}
+                      {selectedOsiLayer && (
+                        <div className="mt-8 p-6 bg-gradient-to-r from-red-500/10 via-pink-500/10 to-purple-500/10 rounded-xl border border-red-400/30 backdrop-blur-sm">
+                          <div className="flex items-center mb-6">
+                            <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                              <i className="fas fa-search-plus text-white"></i>
+                            </div>
+                            <div>
+                              <h5 className="text-xl font-semibold text-red-300">
+                                OSI Layer {selectedOsiLayer} Packet Inspection
+                              </h5>
+                              <p className="text-sm text-slate-400">
+                                Deep packet analysis with headers, payloads, and metadata
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => setSelectedOsiLayer(null)}
+                              className="ml-auto text-slate-400 hover:text-white transition-colors"
+                            >
+                              <i className="fas fa-times text-xl"></i>
+                            </button>
+                          </div>
+
+                          <div className="space-y-4">
+                            {generateLayerPackets(selectedOsiLayer, selectedHop).map((packet, index) => (
+                              <div key={index} className="bg-slate-800/60 rounded-lg border border-slate-600/30 p-4">
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="flex items-center space-x-3">
+                                    <div className={`w-3 h-3 rounded-full ${
+                                      packet.protocol === 'HTTPS' || packet.protocol === 'TLS 1.3' ? 'bg-green-400 animate-pulse' :
+                                      packet.protocol === 'TCP' ? 'bg-blue-400' :
+                                      packet.protocol === 'IP' ? 'bg-purple-400' :
+                                      packet.protocol === 'Ethernet' ? 'bg-yellow-400' : 'bg-gray-400'
+                                    }`}></div>
+                                    <span className="font-semibold text-white">{packet.type}</span>
+                                    <span className="text-cyan-400 font-mono text-sm">{packet.protocol}</span>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="text-slate-400 text-sm font-mono">{packet.timestamp}</div>
+                                    <div className="text-slate-500 text-xs">{packet.size}</div>
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                  <div>
+                                    <div className="text-xs text-slate-500 mb-1">SOURCE</div>
+                                    <div className="text-cyan-400 font-mono text-sm bg-cyan-500/10 px-2 py-1 rounded">
+                                      {packet.source}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="text-xs text-slate-500 mb-1">DESTINATION</div>
+                                    <div className="text-purple-400 font-mono text-sm bg-purple-500/10 px-2 py-1 rounded">
+                                      {packet.dest}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Packet Details */}
+                                <div className="bg-slate-900/60 rounded-lg p-4 border border-slate-700/50">
+                                  <h6 className="text-sm font-semibold text-slate-300 mb-3 flex items-center">
+                                    <i className="fas fa-code mr-2"></i>
+                                    Packet Details
+                                  </h6>
+
+                                  {packet.protocol === 'HTTPS' && (
+                                    <div className="space-y-3">
+                                      <div>
+                                        <div className="text-xs text-slate-500 mb-1">HTTP METHOD & URI</div>
+                                        <div className="text-green-400 font-mono text-sm">
+                                          {packet.details.method} {packet.details.uri}
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <div className="text-xs text-slate-500 mb-1">HEADERS</div>
+                                        <div className="bg-slate-800/60 p-2 rounded text-xs font-mono text-slate-300 max-h-32 overflow-y-auto">
+                                          {Object.entries(packet.details.headers).map(([key, value]) => (
+                                            <div key={key}>{key}: {value}</div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <div className="text-xs text-slate-500 mb-1">PAYLOAD PREVIEW</div>
+                                        <div className="bg-slate-800/60 p-2 rounded text-xs font-mono text-slate-300">
+                                          {packet.details.payload}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {packet.protocol === 'TLS 1.3' && (
+                                    <div className="space-y-3">
+                                      <div>
+                                        <div className="text-xs text-slate-500 mb-1">TLS VERSION</div>
+                                        <div className="text-blue-400 font-mono text-sm">{packet.details.version}</div>
+                                      </div>
+                                      <div>
+                                        <div className="text-xs text-slate-500 mb-1">CIPHER SUITES</div>
+                                        <div className="space-y-1">
+                                          {packet.details.cipherSuites.map((suite, i) => (
+                                            <div key={i} className="text-cyan-400 font-mono text-xs bg-cyan-500/10 px-2 py-1 rounded">
+                                              {suite}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <div className="text-xs text-slate-500 mb-1">SESSION KEYS</div>
+                                        <div className="bg-slate-800/60 p-2 rounded text-xs font-mono text-yellow-400 space-y-1">
+                                          <div>Client Random: {packet.details.sessionKeys.clientRandom}</div>
+                                          <div>Master Secret: {packet.details.sessionKeys.masterSecret}</div>
+                                          <div>Session Ticket: {packet.details.sessionKeys.sessionTicket.substring(0, 20)}...</div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {(packet.protocol === 'TCP' || packet.type.includes('TCP')) && (
+                                    <div className="space-y-3">
+                                      <div>
+                                        <div className="text-xs text-slate-500 mb-1">TCP FLAGS</div>
+                                        <div className="flex flex-wrap gap-1">
+                                          {packet.details.flags.map((flag, i) => (
+                                            <span key={i} className="bg-red-500/20 text-red-400 px-2 py-1 rounded text-xs font-mono">
+                                              {flag}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      </div>
+                                      <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                          <div className="text-xs text-slate-500 mb-1">SEQ NUMBER</div>
+                                          <div className="text-green-400 font-mono text-sm">{packet.details.seqNumber}</div>
+                                        </div>
+                                        {packet.details.ackNumber && (
+                                          <div>
+                                            <div className="text-xs text-slate-500 mb-1">ACK NUMBER</div>
+                                            <div className="text-blue-400 font-mono text-sm">{packet.details.ackNumber}</div>
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                          <div className="text-xs text-slate-500 mb-1">WINDOW SIZE</div>
+                                          <div className="text-purple-400 font-mono text-sm">{packet.details.windowSize}</div>
+                                        </div>
+                                        {packet.details.checksum && (
+                                          <div>
+                                            <div className="text-xs text-slate-500 mb-1">CHECKSUM</div>
+                                            <div className="text-orange-400 font-mono text-sm">{packet.details.checksum}</div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {packet.protocol === 'IP' && (
+                                    <div className="space-y-3">
+                                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <div>
+                                          <div className="text-xs text-slate-500 mb-1">VERSION</div>
+                                          <div className="text-blue-400 font-mono text-sm">IPv{packet.details.version}</div>
+                                        </div>
+                                        <div>
+                                          <div className="text-xs text-slate-500 mb-1">TTL</div>
+                                          <div className="text-green-400 font-mono text-sm">{packet.details.ttl}</div>
+                                        </div>
+                                        <div>
+                                          <div className="text-xs text-slate-500 mb-1">PROTOCOL</div>
+                                          <div className="text-purple-400 font-mono text-sm">{packet.details.protocol}</div>
+                                        </div>
+                                        <div>
+                                          <div className="text-xs text-slate-500 mb-1">CHECKSUM</div>
+                                          <div className="text-orange-400 font-mono text-sm">{packet.details.checksum}</div>
+                                        </div>
+                                      </div>
+                                      <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                          <div className="text-xs text-slate-500 mb-1">SOURCE IP</div>
+                                          <div className="text-cyan-400 font-mono text-sm bg-cyan-500/10 px-2 py-1 rounded">
+                                            {packet.details.sourceIP}
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <div className="text-xs text-slate-500 mb-1">DESTINATION IP</div>
+                                          <div className="text-purple-400 font-mono text-sm bg-purple-500/10 px-2 py-1 rounded">
+                                            {packet.details.destIP}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {packet.protocol === 'Ethernet' && (
+                                    <div className="space-y-3">
+                                      <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                          <div className="text-xs text-slate-500 mb-1">SOURCE MAC</div>
+                                          <div className="text-green-400 font-mono text-sm bg-green-500/10 px-2 py-1 rounded">
+                                            {packet.details.sourceMAC}
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <div className="text-xs text-slate-500 mb-1">DESTINATION MAC</div>
+                                          <div className="text-blue-400 font-mono text-sm bg-blue-500/10 px-2 py-1 rounded">
+                                            {packet.details.destMAC}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                        <div>
+                                          <div className="text-xs text-slate-500 mb-1">ETHERTYPE</div>
+                                          <div className="text-purple-400 font-mono text-sm">{packet.details.ethertype}</div>
+                                        </div>
+                                        {packet.details.vlanTag && (
+                                          <div>
+                                            <div className="text-xs text-slate-500 mb-1">VLAN</div>
+                                            <div className="text-orange-400 font-mono text-sm">{packet.details.vlanTag}</div>
+                                          </div>
+                                        )}
+                                        <div>
+                                          <div className="text-xs text-slate-500 mb-1">FCS</div>
+                                          <div className="text-red-400 font-mono text-sm">{packet.details.fcs}</div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {packet.protocol === 'Physical' && (
+                                    <div className="space-y-3">
+                                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <div>
+                                          <div className="text-xs text-slate-500 mb-1">SIGNAL TYPE</div>
+                                          <div className="text-blue-400 font-mono text-sm">{packet.details.signalType}</div>
+                                        </div>
+                                        <div>
+                                          <div className="text-xs text-slate-500 mb-1">BIT RATE</div>
+                                          <div className="text-green-400 font-mono text-sm">{packet.details.bitRate}</div>
+                                        </div>
+                                        <div>
+                                          <div className="text-xs text-slate-500 mb-1">MODULATION</div>
+                                          <div className="text-purple-400 font-mono text-sm">{packet.details.modulation}</div>
+                                        </div>
+                                        <div>
+                                          <div className="text-xs text-slate-500 mb-1">ERROR CORRECTION</div>
+                                          <div className="text-orange-400 font-mono text-sm">{packet.details.errorCorrection}</div>
+                                        </div>
+                                      </div>
+                                      {packet.details.frequency !== 'N/A' && (
+                                        <div>
+                                          <div className="text-xs text-slate-500 mb-1">FREQUENCY</div>
+                                          <div className="text-cyan-400 font-mono text-sm">{packet.details.frequency}</div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+
+                            {generateLayerPackets(selectedOsiLayer, selectedHop).length === 0 && (
+                              <div className="text-center py-8 text-slate-400">
+                                <i className="fas fa-info-circle text-4xl mb-4 text-slate-600"></i>
+                                <p>No packets available for this layer</p>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="mt-6 p-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-lg border border-yellow-400/30">
+                            <div className="flex items-center justify-center space-x-2 text-yellow-400">
+                              <i className="fas fa-lightbulb text-lg"></i>
+                              <span className="text-sm font-medium">
+                                💡 Click other OSI layers to inspect their packets • Real packet capture possible with system permissions
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Packet List - Wireshark Style - Redesigned */}
                       <div className="space-y-3">
                         <div className="grid grid-cols-12 gap-3 text-xs font-semibold bg-gradient-to-r from-slate-800 to-slate-700 p-4 rounded-xl text-slate-200 border border-slate-600/50">
@@ -1526,6 +2100,21 @@ const TracerouteVisualization = () => {
               </div>
               <h3 className="text-xl font-semibold text-cyan-400 mb-2">Capturing Network Packets...</h3>
               <p className="text-gray-500 mb-4">Tracing route and analyzing network protocols</p>
+
+              {/* Progress Bar */}
+              <div className="mb-6 max-w-md mx-auto">
+                <div className="flex justify-between text-sm text-gray-400 mb-2">
+                  <span>Progress</span>
+                  <span>{Math.round(traceProgress)}%</span>
+                </div>
+                <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-cyan-400 to-blue-500 h-3 rounded-full transition-all duration-300 ease-out"
+                    style={{ width: `${traceProgress}%` }}
+                  ></div>
+                </div>
+              </div>
+
               {dnsStatus && (
                 <div className="bg-gray-800 rounded p-3 mb-4 max-w-md mx-auto">
                   <p className="text-cyan-300 text-sm font-mono">{dnsStatus}</p>
