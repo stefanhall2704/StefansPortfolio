@@ -190,7 +190,7 @@ const Story = () => {
       <div className="max-w-6xl mx-auto">
         <div
           ref={ref}
-          className={`card-modern p-8 slide-up ${inView ? 'opacity-100' : 'opacity-0'}`}
+          className={`card-modern p-6 slide-up ${inView ? 'opacity-100' : 'opacity-0'}`}
         >
           <div className="text-center mb-8 md:mb-12">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent mb-3 md:mb-4">
@@ -202,7 +202,7 @@ const Story = () => {
           </div>
 
           <div className="prose prose-lg prose-invert max-w-none">
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-6">
                 <div className="border-l-4 border-cyan-400 pl-6">
                   <h2 className="text-2xl font-semibold text-cyan-400 mb-3">The Beginning</h2>
@@ -363,7 +363,7 @@ const TLSHandshakeAnimation = () => {
       <div className="max-w-6xl mx-auto">
         <div
           ref={ref}
-          className={`card-modern p-8 slide-up ${inView ? 'opacity-100' : 'opacity-0'}`}
+          className={`card-modern p-6 slide-up ${inView ? 'opacity-100' : 'opacity-0'}`}
         >
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
@@ -374,7 +374,7 @@ const TLSHandshakeAnimation = () => {
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-8 mb-8">
+          <div className="grid lg:grid-cols-2 gap-6 mb-8">
             {/* Control Panel */}
             <div className="space-y-4">
               <div className="flex items-center justify-center space-x-4">
@@ -1023,7 +1023,7 @@ const TracerouteVisualization = () => {
             </button>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-8">
+          <div className="grid lg:grid-cols-2 gap-6">
             {/* Control Panel */}
             <div className="space-y-4">
               <div className="flex justify-center space-x-4">
@@ -1386,10 +1386,10 @@ const TracerouteVisualization = () => {
 
   return (
     <section className="py-20 px-4">
-      <div className="max-w-7xl mx-auto">
+      <div className="w-[85%] mx-auto max-w-none">
         <div
           ref={ref}
-          className={`card-modern p-8 slide-up ${inView ? 'opacity-100' : 'opacity-0'}`}
+          className={`card-modern p-6 slide-up ${inView ? 'opacity-100' : 'opacity-0'}`}
         >
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
@@ -1430,7 +1430,7 @@ const TracerouteVisualization = () => {
           </div>
 
           {traceResult.length > 0 && (
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-10">
               {/* Network Hops - Left Side */}
               <div className="lg:col-span-1">
                 <div className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 rounded-2xl p-6 shadow-2xl border border-slate-700/50 backdrop-blur-sm">
@@ -1483,8 +1483,8 @@ const TracerouteVisualization = () => {
                                 <span className="text-slate-400 text-xs font-mono bg-slate-700/50 px-2 py-0.5 rounded">
                                   {hop.ip}
                                 </span>
-                                <span className="text-purple-300 text-xs bg-purple-500/10 px-2 py-0.5 rounded">
-                                  {hop.location}
+                                <span className="text-purple-300 text-xs bg-purple-500/10 px-2 py-0.5 rounded truncate max-w-32" title={hop.description || hop.location}>
+                                  {hop.description || hop.location}
                                 </span>
                               </div>
                             </div>
@@ -1521,7 +1521,7 @@ const TracerouteVisualization = () => {
                 {selectedHop ? (
                   <div className={`space-y-8 ${selectedOsiLayer ? 'lg:flex lg:space-y-0 lg:space-x-6' : ''}`}>
                     {/* Packet Header */}
-                    <div className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 rounded-2xl p-8 shadow-2xl border border-slate-700/50 backdrop-blur-sm">
+                    <div className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 rounded-2xl p-6 shadow-2xl border border-slate-700/50 backdrop-blur-sm">
                       <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center space-x-4">
                           <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-xl">
@@ -1678,7 +1678,7 @@ const TracerouteVisualization = () => {
                             </button>
                           </div>
 
-                          <div className="space-y-4">
+                          <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-25rem)]">
                             {generateLayerPackets(selectedOsiLayer, selectedHop).map((packet, index) => (
                               <div key={index} className="bg-slate-800/60 rounded-lg border border-slate-600/30 p-4">
                                 <div className="flex items-center justify-between mb-3">
@@ -2019,7 +2019,7 @@ const TracerouteVisualization = () => {
                     </div>
 
                     {/* Detailed Packet Analysis - Redesigned */}
-                    <div className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 rounded-2xl p-8 shadow-2xl border border-slate-700/50 backdrop-blur-sm">
+                    <div className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 rounded-2xl p-6 shadow-2xl border border-slate-700/50 backdrop-blur-sm">
                       <div className="flex items-center mb-6">
                         <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
                           <i className="fas fa-search text-white"></i>
@@ -2027,7 +2027,7 @@ const TracerouteVisualization = () => {
                         <h4 className="text-xl font-bold text-white">Deep Packet Analysis</h4>
                       </div>
 
-                      <div className="grid md:grid-cols-2 gap-8">
+                      <div className="grid md:grid-cols-2 gap-6">
                         {/* TCP Handshake Visualization - Redesigned */}
                         <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-600/30">
                           <div className="flex items-center mb-4">
@@ -2305,7 +2305,7 @@ const SelfHealing = () => {
       <div className="max-w-6xl mx-auto">
     <div
       ref={ref}
-          className={`card-modern p-8 slide-up ${inView ? 'opacity-100' : 'opacity-0'}`}
+          className={`card-modern p-6 slide-up ${inView ? 'opacity-100' : 'opacity-0'}`}
     >
           <div className="flex items-center mb-8">
             <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mr-4 shadow-xl">
@@ -2456,7 +2456,7 @@ const Blog = () => {
       <div className="max-w-6xl mx-auto">
     <div
       ref={ref}
-          className={`card-modern p-8 slide-up ${inView ? 'opacity-100' : 'opacity-0'}`}
+          className={`card-modern p-6 slide-up ${inView ? 'opacity-100' : 'opacity-0'}`}
     >
           <div className="flex items-center mb-8">
             <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mr-4 shadow-xl">
@@ -2657,7 +2657,7 @@ const DijkstrasAlgorithm = () => {
     <section className="py-20 px-4">
       <div className="max-w-6xl mx-auto">
         <div
-          className="card-modern p-8 slide-up"
+          className="card-modern p-6 slide-up"
         >
           <div className="flex items-center mb-8">
             <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-2xl flex items-center justify-center mr-4 shadow-xl">
@@ -2810,7 +2810,7 @@ const FileControl = () => {
       <div className="max-w-6xl mx-auto">
     <div
       ref={ref}
-          className={`card-modern p-8 slide-up ${inView ? 'opacity-100' : 'opacity-0'}`}
+          className={`card-modern p-6 slide-up ${inView ? 'opacity-100' : 'opacity-0'}`}
     >
           <div className="flex items-center mb-8">
             <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center mr-4 shadow-xl">
@@ -2963,7 +2963,7 @@ const ChangeManagementApplication = () => {
       <div className="max-w-6xl mx-auto">
     <div
       ref={ref}
-          className={`card-modern p-8 slide-up ${inView ? 'opacity-100' : 'opacity-0'}`}
+          className={`card-modern p-6 slide-up ${inView ? 'opacity-100' : 'opacity-0'}`}
     >
           <div className="flex items-center mb-8">
             <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center mr-4 shadow-xl">
@@ -3048,7 +3048,7 @@ const ReverseProxySystem = () => {
       <div className="max-w-6xl mx-auto">
         <div
           ref={ref}
-          className={`card-modern p-8 slide-up ${inView ? 'opacity-100' : 'opacity-0'}`}
+          className={`card-modern p-6 slide-up ${inView ? 'opacity-100' : 'opacity-0'}`}
         >
           <div className="flex items-center mb-8">
             <div className="w-12 h-12 bg-gradient-to-r from-violet-500 to-purple-500 rounded-2xl flex items-center justify-center mr-4 shadow-xl">
@@ -3151,7 +3151,7 @@ const ReleaseDashboard = () => {
       <div className="max-w-6xl mx-auto">
         <div
           ref={ref}
-          className={`card-modern p-8 slide-up ${inView ? 'opacity-100' : 'opacity-0'}`}
+          className={`card-modern p-6 slide-up ${inView ? 'opacity-100' : 'opacity-0'}`}
         >
           <div className="flex items-center mb-8">
             <div className="w-12 h-12 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-2xl flex items-center justify-center mr-4 shadow-xl">
@@ -3254,7 +3254,7 @@ const IncidentManagementBridge = () => {
       <div className="max-w-6xl mx-auto">
         <div
           ref={ref}
-          className={`card-modern p-8 slide-up ${inView ? 'opacity-100' : 'opacity-0'}`}
+          className={`card-modern p-6 slide-up ${inView ? 'opacity-100' : 'opacity-0'}`}
         >
           <div className="flex items-center mb-8">
             <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl flex items-center justify-center mr-4 shadow-xl">
