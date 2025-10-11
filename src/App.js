@@ -3496,28 +3496,48 @@ const InteractiveNetworkVisualization = () => {
   ];
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            // Gradually reveal nodes as user scrolls deeper
-            const scrollProgress = Math.min(1, entry.intersectionRatio * 2);
-            const nodesToShow = Math.min(8, Math.max(1, Math.ceil(scrollProgress * 8)));
-            setVisibleNodes(nodesToShow);
-          }
-        });
-      },
-      {
-        threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-        rootMargin: '0px 0px -100px 0px'
+    const handleScroll = () => {
+      if (!containerRef.current) return;
+
+      // Get the scroll position relative to the container
+      const containerTop = containerRef.current.offsetTop;
+      const scrollY = window.scrollY;
+      const windowHeight = window.innerHeight;
+
+      // Calculate scroll progress through the container (300vh tall)
+      const containerHeight = containerRef.current.offsetHeight;
+      const scrollProgress = Math.max(0, Math.min(1, (scrollY - containerTop + windowHeight * 0.5) / (containerHeight - windowHeight)));
+
+      // Map scroll progress to node revelation
+      // Start with 1 node, gradually reveal more as we scroll deeper
+      if (scrollProgress < 0.1) {
+        setVisibleNodes(1);
+      } else if (scrollProgress < 0.25) {
+        setVisibleNodes(2);
+      } else if (scrollProgress < 0.4) {
+        setVisibleNodes(3);
+      } else if (scrollProgress < 0.55) {
+        setVisibleNodes(4);
+      } else if (scrollProgress < 0.7) {
+        setVisibleNodes(5);
+      } else if (scrollProgress < 0.85) {
+        setVisibleNodes(6);
+      } else if (scrollProgress < 0.95) {
+        setVisibleNodes(7);
+      } else {
+        setVisibleNodes(8);
       }
-    );
+    };
 
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
+    // Initial check
+    handleScroll();
 
-    return () => observer.disconnect();
+    // Add scroll listener
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   const toggleNodeFlip = (nodeId) => {
@@ -3537,7 +3557,7 @@ const InteractiveNetworkVisualization = () => {
       <div className="max-w-7xl mx-auto">
         <div
           ref={containerRef}
-          className="relative h-screen flex items-center justify-center"
+          className="relative h-[300vh] flex items-start justify-center pt-20"
         >
           {/* Title */}
           <div className="absolute top-8 left-1/2 transform -translate-x-1/2 text-center z-10">
@@ -3550,7 +3570,7 @@ const InteractiveNetworkVisualization = () => {
           </div>
 
           {/* Network Visualization */}
-          <div className="relative w-full h-full max-w-4xl mx-auto">
+          <div className="sticky top-20 w-full h-screen max-w-4xl mx-auto flex items-center justify-center">
             <svg
               className="absolute inset-0 w-full h-full"
               style={{ zIndex: 1 }}
@@ -3652,13 +3672,20 @@ const InteractiveNetworkVisualization = () => {
             })}
           </div>
 
-          {/* Scroll indicator */}
+          {/* Progress indicator */}
           <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center">
             <div className="text-slate-400 text-sm mb-2">
-              Scroll to reveal network nodes
+              {visibleNodes}/8 nodes revealed
             </div>
-            <div className="w-6 h-10 border-2 border-slate-400 rounded-full flex justify-center">
-              <div className="w-1 h-3 bg-slate-400 rounded-full mt-2 animate-bounce"></div>
+            <div className="flex space-x-1">
+              {Array.from({ length: 8 }, (_, i) => (
+                <div
+                  key={i}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    i < visibleNodes ? 'bg-blue-400 scale-125' : 'bg-slate-600'
+                  }`}
+                />
+              ))}
             </div>
           </div>
         </div>
