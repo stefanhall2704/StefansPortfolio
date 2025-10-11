@@ -1431,9 +1431,9 @@ const TracerouteVisualization = () => {
           </div>
 
           {traceResult.length > 0 && (
-            <div className="space-y-8">
-              {/* Network Hops - Full Width */}
-              <div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+              {/* Network Hops - Left Side */}
+              <div className="lg:col-span-1">
                 <div className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 rounded-2xl p-6 shadow-2xl border border-slate-700/50 backdrop-blur-sm">
                   <div className="flex items-center mb-6">
                     <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
@@ -1522,10 +1522,10 @@ const TracerouteVisualization = () => {
                 </div>
               </div>
 
-              {/* OSI Model & Packet Inspection - Full Width Vertical */}
-              <div>
+              {/* OSI Model & Packet Inspection - Middle/Right Side */}
+              <div className="lg:col-span-2">
                 {selectedHop ? (
-                  <div className="space-y-8">
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                     {/* Packet Header */}
                     <div className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 rounded-2xl p-6 shadow-2xl border border-slate-700/50 backdrop-blur-sm">
                       <div className="text-center mb-6">
@@ -1546,7 +1546,7 @@ const TracerouteVisualization = () => {
                       </div>
 
                       {/* OSI Model Container */}
-                      <div>
+                      <div className={`${selectedOsiLayer ? 'xl:col-span-1' : 'xl:col-span-2'}`}>
                         {/* Local Machine OSI Stack (Before Network) */}
                         <div className="p-6 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-indigo-500/10 rounded-xl border border-cyan-400/30 backdrop-blur-sm">
                         <div className="flex items-center mb-4">
@@ -1660,7 +1660,7 @@ const TracerouteVisualization = () => {
 
                       {/* Interactive Packet Inspection Panel */}
                       {selectedOsiLayer && (
-                        <div className="p-6 bg-gradient-to-r from-red-500/10 via-pink-500/10 to-purple-500/10 rounded-xl border border-red-400/30 backdrop-blur-sm">
+                        <div className="xl:col-span-1 p-6 bg-gradient-to-r from-red-500/10 via-pink-500/10 to-purple-500/10 rounded-xl border border-red-400/30 backdrop-blur-sm">
                           <div className="flex items-center mb-6">
                             <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
                               <i className="fas fa-search-plus text-white"></i>
