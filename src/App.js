@@ -176,6 +176,7 @@ const Info = () => {
               <i className="fab fa-free-code-camp text-2xl"></i>
             </a>
     </div>
+    
         </div>
       </div>
     </section>
