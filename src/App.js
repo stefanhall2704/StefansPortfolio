@@ -564,155 +564,73 @@ const TracerouteVisualization = () => {
   const generateRealisticTraceroute = (domain, resolvedIP) => {
     const hops = [];
     const ipParts = resolvedIP.split('.').map(Number);
+
+    // Determine approximate geographic region based on IP
     let region = 'Unknown';
-    let provider = 'Unknown';
 
-    // Identify major providers for realistic routing
-    if (ipParts[0] === 142 && ipParts[1] === 250) {
-      region = 'Mountain View, CA';
-      provider = 'Google';
-    } else if (ipParts[0] === 140 && ipParts[1] === 82) {
-      region = 'East Coast, US';
-      provider = 'GitHub';
-    } else if (ipParts[0] === 151 && ipParts[1] === 101) {
-      region = 'New York, NY';
-      provider = 'Stack Overflow';
-    } else if (ipParts[0] === 104 && ipParts[1] === 21) {
-      region = 'Global CDN';
-      provider = 'Cloudflare';
-    } else if (ipParts[0] === 205 && ipParts[1] === 251) {
-      region = 'AWS Global';
-      provider = 'Amazon';
-    } else if (ipParts[0] === 52) {
-      region = 'AWS Global';
-      provider = 'Netflix';
-    } else if (ipParts[0] === 157 && ipParts[1] === 240) {
-      region = 'Menlo Park, CA';
-      provider = 'Meta';
-    } else if (ipParts[0] === 104 && ipParts[1] === 244) {
-      region = 'San Francisco, CA';
-      provider = 'Twitter/X';
-    } else {
-      region = ipParts[0] >= 192 ? 'North America' : 'International';
-      provider = 'Generic Provider';
-    }
+    // Major cloud providers and services
+    if (ipParts[0] === 142 && ipParts[1] === 250) region = 'Mountain View, CA (Google)';
+    else if (ipParts[0] === 140 && ipParts[1] === 82) region = 'GitHub (East Coast)';
+    else if (ipParts[0] === 151 && ipParts[1] === 101) region = 'Stack Overflow (NYC)';
+    else if (ipParts[0] === 104 && ipParts[1] === 21) region = 'Cloudflare (Global)';
+    else if (ipParts[0] === 205 && ipParts[1] === 251) region = 'AWS (Amazon)';
+    else if (ipParts[0] === 52 && ipParts[1] === 6) region = 'AWS (Netflix)';
+    else if (ipParts[0] === 157 && ipParts[1] === 240) region = 'Facebook (Meta)';
+    else if (ipParts[0] === 104 && ipParts[1] === 244) region = 'Twitter (X)';
 
-    // Generate realistic hop count (15-25 hops like real traceroute)
-    const hopCount = Math.floor(Math.random() * 11) + 15; // 15-25 hops
-    let latency = 1;
+    // Regional detection for other IPs
+    else if (ipParts[0] >= 192 && ipParts[0] <= 223) region = 'North America';
+    else if (ipParts[0] >= 128 && ipParts[0] <= 191) region = 'North America';
+    else if (ipParts[0] >= 1 && ipParts[0] <= 126) region = 'Various (Likely North America/Europe)';
+    else region = 'International/Global';
 
-    // 1. Local network (Home router)
+    // Local network
     hops.push({
       ip: '192.168.1.1',
-      hostname: 'router.home.local',
+      hostname: 'home.router',
       location: 'Local Network',
-      latency: latency += Math.floor(Math.random() * 2),
-      port: 53,
-      description: 'Home WiFi router - DHCP & DNS'
+      latency: Math.floor(Math.random() * 5) + 1,
+      port: 80
     });
 
-    // 2. ISP residential gateway
+    // ISP Gateway
     hops.push({
-      ip: `67.145.${Math.floor(Math.random() * 256)}.1`,
-      hostname: `dhcp-67-145-${Math.floor(Math.random() * 256)}-1.brightspeed.net`,
-      location: 'ISP Residential Gateway',
-      latency: latency += Math.floor(Math.random() * 5) + 2,
-      port: 53,
-      description: 'ISP residential gateway'
+      ip: '10.0.0.1',
+      hostname: 'isp.gateway.net',
+      location: 'ISP Gateway',
+      latency: Math.floor(Math.random() * 10) + 5,
+      port: 80
     });
 
-    // 3-4. ISP core network
-    for (let i = 0; i < 2; i++) {
-      hops.push({
-        ip: `207.50.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`,
-        hostname: `ae${Math.floor(Math.random() * 50)}.edge${Math.floor(Math.random() * 10)}.wdc12.sp.brightspeed.net`,
-        location: 'ISP Core Network',
-        latency: latency += Math.floor(Math.random() * 8) + 3,
-        port: 53,
-        description: `ISP core router ${i + 1}`
-      });
-    }
+    // Core Router
+    hops.push({
+      ip: `172.16.${Math.floor(Math.random() * 255)}.1`,
+      hostname: 'core-router.isp.net',
+      location: 'Core Router',
+      latency: Math.floor(Math.random() * 15) + 10,
+      port: 443
+    });
 
-    // 5-8. Transit provider network (Lumen/Cogent/etc)
-    const transitProviders = ['lumen.tech', 'cogentco.com', 'level3.net', 'telia.net'];
-    for (let i = 0; i < 4; i++) {
-      const transitProvider = transitProviders[Math.floor(Math.random() * transitProviders.length)];
-      hops.push({
-        ip: `${4 + Math.floor(Math.random() * 4)}.${68 + Math.floor(Math.random() * 10)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`,
-        hostname: `ae${Math.floor(Math.random() * 50)}.edge${Math.floor(Math.random() * 10)}.${transitProvider}`,
-        location: 'Transit Provider',
-        latency: latency += Math.floor(Math.random() * 12) + 5,
-        port: 53,
-        description: `${transitProvider} backbone`
-      });
-    }
+    // Transit Provider
+    hops.push({
+      ip: `${Math.floor(Math.random() * 64) + 192}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.1`,
+      hostname: 'transit-provider.net',
+      location: 'Transit Provider',
+      latency: Math.floor(Math.random() * 20) + 15,
+      port: 443
+    });
 
-    // 9-12. Provider edge network
-    if (provider === 'Google') {
-      hops.push({
-        ip: `142.250.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`,
-        hostname: `google-public-dns-${['a','b','c'][Math.floor(Math.random() * 3)]}.google.com`,
-        location: 'Google Edge Network',
-        latency: latency += Math.floor(Math.random() * 10) + 8,
-        port: 443,
-        description: 'Google Cloud edge'
-      });
-      hops.push({
-        ip: `172.253.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`,
-        hostname: `bg-in-f${Math.floor(Math.random() * 200)}.1e100.net`,
-        location: 'Google Data Center',
-        latency: latency += Math.floor(Math.random() * 15) + 10,
-        port: 443,
-        description: 'Google origin server'
-      });
-    } else if (provider === 'Cloudflare') {
-      hops.push({
-        ip: `104.21.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`,
-        hostname: `cloudflare-dns.com`,
-        location: 'Cloudflare Edge',
-        latency: latency += Math.floor(Math.random() * 8) + 6,
-        port: 443,
-        description: 'Cloudflare CDN edge'
-      });
-    } else {
-      // Generic provider edge
-      hops.push({
-        ip: `${ipParts[0]}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`,
-        hostname: `${provider.toLowerCase()}-edge-${Math.floor(Math.random() * 100)}.net`,
-        location: `${provider} Edge Network`,
-        latency: latency += Math.floor(Math.random() * 10) + 8,
-        port: 443,
-        description: `${provider} edge network`
-      });
-    }
-
-    // 13-15. Additional routing hops (sometimes timeout like real traceroute)
-    for (let i = 0; i < 3; i++) {
-      if (Math.random() > 0.4) { // 60% chance of response (simulating timeouts)
-        hops.push({
-          ip: `${ipParts[0]}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`,
-          hostname: `core-router-${Math.floor(Math.random() * 100)}.${provider.toLowerCase().split(' ')[0]}.net`,
-          location: `${provider} Core Network`,
-          latency: latency += Math.floor(Math.random() * 12) + 8,
-          port: 443,
-          description: `${provider} core routing`
-        });
-      }
-    }
-
-    // Final destination
+    // Destination network
     hops.push({
       ip: resolvedIP,
       hostname: domain,
-      location: `${region} (${provider})`,
-      latency: latency += Math.floor(Math.random() * 15) + 5,
-      port: domain.includes('https') || resolvedIP.includes('443') ? 443 : 80,
-      isSecure: domain.includes('https') || resolvedIP.includes('443'),
-      description: `${provider} origin server`
+      location: region,
+      latency: Math.floor(Math.random() * 25) + 20,
+      port: 443,
+      isSecure: true
     });
 
-    // Trim to realistic hop count (15-25)
-    return hops.slice(0, hopCount);
+    return hops;
   };
 
   // Generate realistic packet data for each OSI layer
@@ -910,10 +828,11 @@ const TracerouteVisualization = () => {
 
       for (let i = 0; i < hops.length; i++) {
         const hop = hops[i];
+        // Add some jitter to make it feel more realistic
         const delay = hop.latency + Math.floor(Math.random() * 15);
         setDnsStatus(`Hop ${i + 1}/${hops.length}: ${hop.hostname} (${hop.ip}) - ${hop.description}...`);
         setTraceProgress(30 + (i * progressIncrement));
-        await new Promise(resolve => setTimeout(resolve, Math.max(delay * 8, 200)));
+        await new Promise(resolve => setTimeout(resolve, Math.max(delay * 8, 200))); // Scale delay for UI
         setTraceResult(prev => [...prev, hop]);
       }
       setTraceProgress(100);
@@ -940,12 +859,12 @@ const TracerouteVisualization = () => {
         { ip: fallbackIP, hostname: domainName, location: 'Simulated Destination', latency: 32, port: 443, isSecure: true, description: 'Destination server' }
       ];
 
-      setDnsStatus(`Tracing simulated path to ${domainName} (${fallbackHops.length} hops)...`);
+      setDnsStatus(`Tracing simulated path to ${domainName}...`);
       const progressIncrement = 75 / fallbackHops.length;
 
       for (let i = 0; i < fallbackHops.length; i++) {
         const hop = fallbackHops[i];
-        setDnsStatus(`Hop ${i + 1}/${fallbackHops.length}: ${hop.hostname} (${hop.ip}) - ${hop.description}...`);
+        setDnsStatus(`Simulating hop ${i + 1}/${fallbackHops.length}: ${hop.hostname}...`);
         setTraceProgress(25 + (i * progressIncrement));
         await new Promise(resolve => setTimeout(resolve, 400));
         setTraceResult(prev => [...prev, hop]);
@@ -1480,8 +1399,8 @@ const TracerouteVisualization = () => {
                                 <span className="text-slate-400 text-xs font-mono bg-slate-700/50 px-2 py-0.5 rounded">
                                   {hop.ip}
                                 </span>
-                                <span className="text-purple-300 text-xs bg-purple-500/10 px-2 py-0.5 rounded truncate max-w-24" title={hop.description || hop.location}>
-                                  {hop.description || hop.location}
+                                <span className="text-purple-300 text-xs bg-purple-500/10 px-2 py-0.5 rounded">
+                                  {hop.location}
                                 </span>
                               </div>
                             </div>
@@ -1516,7 +1435,7 @@ const TracerouteVisualization = () => {
               {/* OSI Model & Packet Inspection - Center/Right Side */}
               <div className="lg:col-span-2">
                 {selectedHop ? (
-                  <div className="space-y-8">
+                  <div className={`space-y-8 ${selectedOsiLayer ? 'lg:flex lg:space-y-0 lg:space-x-6' : ''}`}>
                     {/* Packet Header */}
                     <div className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 rounded-2xl p-8 shadow-2xl border border-slate-700/50 backdrop-blur-sm">
                       <div className="flex items-center justify-between mb-6">
@@ -1539,8 +1458,10 @@ const TracerouteVisualization = () => {
                         </button>
                       </div>
 
-                      {/* Local Machine OSI Stack (Before Network) */}
-                      <div className="mt-8 p-6 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-indigo-500/10 rounded-xl border border-cyan-400/30 backdrop-blur-sm">
+                      {/* OSI Model Container */}
+                      <div className={`${selectedOsiLayer ? 'lg:flex-1' : ''}`}>
+                        {/* Local Machine OSI Stack (Before Network) */}
+                        <div className="p-6 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-indigo-500/10 rounded-xl border border-cyan-400/30 backdrop-blur-sm">
                         <div className="flex items-center mb-4">
                           <div className="w-8 h-8 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
                             <i className="fas fa-desktop text-white text-xs"></i>
@@ -1648,10 +1569,11 @@ const TracerouteVisualization = () => {
                           </div>
                         </div>
                       </div>
+                      </div>
 
                       {/* Interactive Packet Inspection Panel */}
                       {selectedOsiLayer && (
-                        <div className="mt-8 p-6 bg-gradient-to-r from-red-500/10 via-pink-500/10 to-purple-500/10 rounded-xl border border-red-400/30 backdrop-blur-sm">
+                        <div className={`${selectedOsiLayer ? 'lg:flex-1' : 'mt-8'} p-6 bg-gradient-to-r from-red-500/10 via-pink-500/10 to-purple-500/10 rounded-xl border border-red-400/30 backdrop-blur-sm`}>
                           <div className="flex items-center mb-6">
                             <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
                               <i className="fas fa-search-plus text-white"></i>
