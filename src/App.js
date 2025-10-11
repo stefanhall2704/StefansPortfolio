@@ -1161,9 +1161,9 @@ const TracerouteVisualization = () => {
           </div>
 
           {traceResult.length > 0 && (
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-              {/* Network Topology - Left Side */}
-              <div className="xl:col-span-1">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+              {/* Network Hops - Left Side */}
+              <div className="lg:col-span-1">
                 <div className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 rounded-2xl p-6 shadow-2xl border border-slate-700/50 backdrop-blur-sm">
                   <div className="flex items-center mb-6">
                     <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
@@ -1247,8 +1247,8 @@ const TracerouteVisualization = () => {
                 </div>
               </div>
 
-              {/* Packet Details - Center/Right Side */}
-              <div className="xl:col-span-2">
+              {/* OSI Model & Packet Inspection - Center/Right Side */}
+              <div className="lg:col-span-2">
                 {selectedHop ? (
                   <div className="space-y-8">
                     {/* Packet Header */}
