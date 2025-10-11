@@ -1528,26 +1528,24 @@ const TracerouteVisualization = () => {
                 {selectedHop ? (
                   <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6">
                     {/* Packet Header */}
-                    <div className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 rounded-lg p-2 border border-slate-700/50 backdrop-blur-sm mb-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-6 h-6 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center">
-                            <i className="fas fa-network-wired text-white text-xs"></i>
-                          </div>
-                          <div>
-                            <h3 className="text-sm font-semibold text-white">
-                              Packet Capture
-                            </h3>
-                            <p className="text-cyan-300 text-xs truncate max-w-32">{selectedHop.hostname}</p>
-                          </div>
+                    <div className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 rounded p-1 border border-slate-700/50 backdrop-blur-sm mb-2 flex items-center justify-between">
+                      <div className="flex items-center space-x-1.5">
+                        <div className="w-5 h-5 bg-gradient-to-r from-cyan-500 to-blue-500 rounded flex items-center justify-center">
+                          <i className="fas fa-network-wired text-white text-xs"></i>
                         </div>
-                        <button
-                          onClick={() => setSelectedHop(null)}
-                          className="w-6 h-6 bg-slate-700 hover:bg-slate-600 rounded flex items-center justify-center text-gray-400 hover:text-white transition-all duration-300"
-                        >
-                          <i className="fas fa-times text-xs"></i>
-                        </button>
+                        <div className="min-w-0">
+                          <div className="text-xs font-medium text-white truncate max-w-24">
+                            Packet Capture
+                          </div>
+                          <div className="text-cyan-300 text-xs truncate max-w-24">{selectedHop.hostname}</div>
+                        </div>
                       </div>
+                      <button
+                        onClick={() => setSelectedHop(null)}
+                        className="w-5 h-5 bg-slate-700 hover:bg-slate-600 rounded flex items-center justify-center text-gray-400 hover:text-white transition-all duration-300 flex-shrink-0 ml-2"
+                      >
+                        <i className="fas fa-times text-xs"></i>
+                      </button>
                     </div>
 
                       {/* OSI Model Container */}
