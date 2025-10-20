@@ -1,0 +1,17 @@
+tunnel: traceroute-backend-tunnel
+credentials-file: /etc/cloudflared/traceroute-tunnel.json
+
+ingress:
+  # Traceroute backend - connect to LoadBalancer external IP
+  - hostname: traceroute.stefan-sre.com
+    service: http://192.168.1.102:8080
+    originRequest:
+      http2Origin: true
+      originServerName: traceroute.stefan-sre.com
+
+  # Health check endpoint
+  - hostname: health-traceroute.stefan-sre.com
+    service: http://192.168.1.102:8080
+
+  # Catch-all rule
+  - service: http_status:404

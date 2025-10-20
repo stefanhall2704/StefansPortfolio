@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: traceroute-backend
+  namespace: stefansportfolio
+  labels:
+    app: traceroute-backend
+spec:
+  selector:
+    app: traceroute-backend
+  ports:
+  - name: websocket
+    port: 8080
+    targetPort: 8080
+    nodePort: 31653
+    protocol: TCP
+  type: NodePort

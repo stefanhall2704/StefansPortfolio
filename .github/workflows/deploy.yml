@@ -1,4 +1,4 @@
-name: Deploy Portfolio App (SSH Method)
+name: Deploy Portfolio & Traceroute Backend (SSH Method)
 
 on:
   push:
@@ -12,9 +12,9 @@ on:
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: stefanmhall/portfolio
-  NAMESPACE: hallphotography
-  DEPLOYMENT_NAME: portfolio
+  PORTFOLIO_IMAGE_NAME: stefanmhall/portfolio
+  TRACEROUTE_IMAGE_NAME: stefanmhall/traceroute-backend
+  NAMESPACE: stefansportfolio
 
 jobs:
   build-and-deploy:
@@ -33,11 +33,11 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-    - name: Extract metadata
-      id: meta
+    - name: Extract metadata for portfolio
+      id: meta-portfolio
       uses: docker/metadata-action@v5
       with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        images: ${{ env.REGISTRY }}/${{ env.PORTFOLIO_IMAGE_NAME }}
         tags: |
           type=ref,event=branch
           type=ref,event=pr
@@ -45,14 +45,37 @@ jobs:
           type=raw,value=latest,enable={{is_default_branch}}
           type=raw,value=${{ github.event.inputs.image_tag || 'latest' }}
 
-    - name: Build and push Docker image
+    - name: Build and push portfolio Docker image
       uses: docker/build-push-action@v5
       with:
         context: .
+        dockerfile: Dockerfile
         platforms: linux/amd64
         push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
+        tags: ${{ steps.meta-portfolio.outputs.tags }}
+        labels: ${{ steps.meta-portfolio.outputs.labels }}
+
+    - name: Extract metadata for traceroute backend
+      id: meta-traceroute
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.TRACEROUTE_IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+          type=raw,value=${{ github.event.inputs.image_tag || 'latest' }}
+
+    - name: Build and push traceroute backend Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        dockerfile: Dockerfile.backend
+        platforms: linux/amd64
+        push: true
+        tags: ${{ steps.meta-traceroute.outputs.tags }}
+        labels: ${{ steps.meta-traceroute.outputs.labels }}
 
     - name: Deploy via SSH
       uses: appleboy/ssh-action@v1.0.3
@@ -63,23 +86,29 @@ jobs:
         script: |
           #!/bin/bash
           set -e
-          
+
           cd /home/stefan/Documents/Personal/StefansPortfolio
-          
+
           # Pull latest changes
           git pull origin main
-          
-          # Deploy portfolio using the portfolio-specific k8s structure
+
+          # Deploy both portfolio and traceroute backend
           chmod +x k8s/deploy-portfolio-with-cloudflare.sh
           ./k8s/deploy-portfolio-with-cloudflare.sh
-          
-          # Verify deployment
+
+          # Verify deployments
           echo "✅ Portfolio app deployed successfully!"
-          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+          echo "Portfolio Image: ${{ env.REGISTRY }}/${{ env.PORTFOLIO_IMAGE_NAME }}:latest"
           kubectl get pods -n ${{ env.NAMESPACE }} -l app=portfolio
+
+          echo ""
+          echo "✅ Traceroute backend deployed successfully!"
+          echo "Traceroute Image: ${{ env.REGISTRY }}/${{ env.TRACEROUTE_IMAGE_NAME }}:latest"
+          kubectl get pods -n ${{ env.NAMESPACE }} -l app=traceroute-backend
 
     - name: Verify deployment
       run: |
-        echo "✅ Portfolio app deployment completed!"
-        echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+        echo "✅ Portfolio & Traceroute Backend deployment completed!"
+        echo "Portfolio Image: ${{ env.REGISTRY }}/${{ env.PORTFOLIO_IMAGE_NAME }}:latest"
+        echo "Traceroute Image: ${{ env.REGISTRY }}/${{ env.TRACEROUTE_IMAGE_NAME }}:latest"
         echo "Namespace: ${{ env.NAMESPACE }}"

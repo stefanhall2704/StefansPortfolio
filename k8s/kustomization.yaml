@@ -7,6 +7,9 @@ resources:
   # Shared components
   - shared/namespace.yaml
   - shared/dns-config.yaml
-  
+
   # Portfolio app
   - portfolio/
+
+  # Traceroute backend
+  - traceroute/

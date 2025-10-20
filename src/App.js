@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useInView } from "react-intersection-observer";
 
@@ -499,10 +499,93 @@ const TracerouteVisualization = () => {
   const [selectedOsiLayer, setSelectedOsiLayer] = useState(null);
   const [dnsStatus, setDnsStatus] = useState('');
   const [traceProgress, setTraceProgress] = useState(0);
+  const [socket, setSocket] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
   const { ref, inView } = useInView({
     threshold: 0.1,
     rootMargin: '50px 0px -100px 0px'
   });
+
+  // WebSocket URL - use environment variable or production URL
+  const WS_URL = process.env.REACT_APP_WS_URL || 'wss://traceroute.stefan-sre.com/ws';
+
+  // Initialize WebSocket connection
+  useEffect(() => {
+    let ws = null;
+
+    const connectWebSocket = () => {
+      try {
+        ws = new WebSocket(WS_URL);
+
+        ws.onopen = () => {
+          console.log('Connected to traceroute server');
+          setIsConnected(true);
+          setDnsStatus('Connected to network analysis server');
+        };
+
+        ws.onclose = () => {
+          console.log('Disconnected from traceroute server');
+          setIsConnected(false);
+          setDnsStatus('Disconnected from network analysis server');
+          // Attempt to reconnect after a delay
+          setTimeout(connectWebSocket, 3000);
+        };
+
+        ws.onerror = (error) => {
+          console.error('WebSocket connection error:', error);
+          setIsConnected(false);
+          setDnsStatus('Failed to connect to network analysis server');
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+
+            switch (data.type) {
+              case 'progress':
+                setTraceProgress(data.progress);
+                setDnsStatus(data.message);
+                if (data.hop) {
+                  setTraceResult(prev => [...prev, data.hop]);
+                }
+                break;
+
+              case 'complete':
+                setTraceProgress(100);
+                setDnsStatus(`✅ Real traceroute complete! Found ${data.result.totalHops} hops`);
+                setIsTracing(false);
+                break;
+
+              case 'error':
+                console.error('Traceroute error:', data.message);
+                setDnsStatus(`❌ Traceroute failed: ${data.message}`);
+                setIsTracing(false);
+                break;
+
+              default:
+                console.log('Unknown message type:', data.type);
+            }
+          } catch (error) {
+            console.error('Failed to parse WebSocket message:', error);
+          }
+        };
+
+      } catch (error) {
+        console.error('Failed to create WebSocket connection:', error);
+        setTimeout(connectWebSocket, 3000);
+      }
+    };
+
+    connectWebSocket();
+
+    setSocket(ws);
+
+    return () => {
+      if (ws) {
+        ws.close();
+      }
+    };
+  }, [WS_URL]);
 
   const resolveDNS = async (domain) => {
     try {
@@ -885,80 +968,32 @@ const TracerouteVisualization = () => {
   };
 
   const performRealTraceroute = async (domainName) => {
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      setDnsStatus('Connecting to traceroute server...');
+      // Wait a bit for connection
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      if (!socket || socket.readyState !== WebSocket.OPEN) {
+        setDnsStatus('❌ Failed to connect to traceroute server. Please try again.');
+        return;
+      }
+    }
+
     setIsTracing(true);
     setTraceResult([]);
     setSelectedHop(null);
     setSelectedOsiLayer(null);
     setTraceProgress(0);
-    setDnsStatus(`Resolving DNS for ${domainName}...`);
 
-    try {
-      // First, resolve the domain to a real IP
-      console.log(`Resolving DNS for: ${domainName}`);
-      setDnsStatus(`Querying DNS servers for ${domainName}...`);
-      setTraceProgress(10);
+    setDnsStatus(`Starting real traceroute to ${domainName}...`);
 
-      const resolvedIP = await resolveDNS(domainName);
-      console.log(`✅ DNS Resolution: ${domainName} → ${resolvedIP}`);
-      setDnsStatus(`✅ Resolved ${domainName} to ${resolvedIP}`);
-      setTraceProgress(20);
+    // Send traceroute request to Go backend
+    const request = {
+      target: domainName,
+      maxHops: 30,
+      timeout: 5
+    };
 
-      // Generate realistic traceroute based on real IP
-      const hops = generateRealisticTraceroute(domainName, resolvedIP);
-      setTraceProgress(30);
-
-      // Simulate the traceroute with realistic delays
-      setDnsStatus(`Tracing network path to ${resolvedIP} (${hops.length} hops)...`);
-      const progressIncrement = 70 / hops.length; // Remaining 70% for hops
-
-      for (let i = 0; i < hops.length; i++) {
-        const hop = hops[i];
-        // Add some jitter to make it feel more realistic
-        const delay = hop.latency + Math.floor(Math.random() * 15);
-        setDnsStatus(`Hop ${i + 1}/${hops.length}: ${hop.hostname} (${hop.ip}) - ${hop.description}...`);
-        setTraceProgress(30 + (i * progressIncrement));
-        await new Promise(resolve => setTimeout(resolve, Math.max(delay * 8, 200))); // Scale delay for UI
-        setTraceResult(prev => [...prev, hop]);
-      }
-      setTraceProgress(100);
-      setDnsStatus(`✅ Traceroute complete! Found ${hops.length} hops to ${domainName}`);
-
-    } catch (error) {
-      console.error('Traceroute failed:', error);
-      setDnsStatus(`⚠️ DNS resolution failed, using simulated data for ${domainName}`);
-      setTraceProgress(25);
-
-      // Generate fallback with hash-based IP for unknown domains
-      const domainHash = domainName.split('').reduce((a, b) => {
-        a = ((a << 5) - a) + b.charCodeAt(0);
-        return a & a;
-      }, 0);
-
-      const fallbackIP = `${Math.abs(domainHash % 256)}.${Math.abs((domainHash >> 8) % 256)}.${Math.abs((domainHash >> 16) % 256)}.${Math.abs((domainHash >> 24) % 256)}`;
-
-      const fallbackHops = [
-        { ip: '192.168.1.1', hostname: 'home.router', location: 'Local Network', latency: 1, port: 80, description: 'Home router' },
-        { ip: '10.0.0.1', hostname: 'isp.gateway', location: 'ISP Gateway', latency: 5, port: 80, description: 'ISP gateway' },
-        { ip: '172.16.0.1', hostname: 'core.router', location: 'Core Router', latency: 12, port: 443, description: 'Core router' },
-        { ip: '8.8.8.8', hostname: 'dns.google', location: 'Google DNS', latency: 25, port: 443, description: 'DNS server' },
-        { ip: fallbackIP, hostname: domainName, location: 'Simulated Destination', latency: 32, port: 443, isSecure: true, description: 'Destination server' }
-      ];
-
-      setDnsStatus(`Tracing simulated path to ${domainName}...`);
-      const progressIncrement = 75 / fallbackHops.length;
-
-      for (let i = 0; i < fallbackHops.length; i++) {
-        const hop = fallbackHops[i];
-        setDnsStatus(`Simulating hop ${i + 1}/${fallbackHops.length}: ${hop.hostname}...`);
-        setTraceProgress(25 + (i * progressIncrement));
-        await new Promise(resolve => setTimeout(resolve, 400));
-        setTraceResult(prev => [...prev, hop]);
-      }
-      setTraceProgress(100);
-      setDnsStatus(`✅ Simulated traceroute complete for ${domainName}`);
-    }
-
-    setIsTracing(false);
+    socket.send(JSON.stringify(request));
   };
 
   const handleTrace = () => {

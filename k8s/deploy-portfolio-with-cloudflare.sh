@@ -8,46 +8,70 @@ echo ""
 
 # Configuration
 PORTFOLIO_NODEPORT=31056
+TRACEROUTE_NODEPORT=31653
 CONTROL_PLANE_IP="192.168.1.102"
 CLOUDFLARE_CONFIG="/etc/cloudflared/config.yml"
-NAMESPACE="hallphotography"
+NAMESPACE="stefansportfolio"
 
 echo "Deploying Portfolio app..."
-# Deploy the portfolio app using the main k8s structure
-kubectl apply -f /home/stefan/Documents/Personal/kubernetes/k8s/portfolio-deployment.yaml
-kubectl apply -f /home/stefan/Documents/Personal/kubernetes/k8s/portfolio-service.yaml
+# Deploy the portfolio app using local k8s files
+kubectl apply -f k8s/portfolio/portfolio-deployment.yaml
+kubectl apply -f k8s/portfolio/portfolio-service.yaml
 
 echo ""
-echo "Forcing deployment rollout to ensure new image is pulled..."
-# Force restart to pull the latest image with updated code
+echo "Deploying Traceroute Backend..."
+# Deploy the traceroute backend
+kubectl apply -f k8s/traceroute/traceroute-backend-deployment.yaml
+kubectl apply -f k8s/traceroute/traceroute-backend-service.yaml
+
+echo ""
+echo "Forcing deployment rollouts to ensure new images are pulled..."
+# Force restart to pull the latest images with updated code
 kubectl rollout restart deployment/portfolio -n $NAMESPACE
+kubectl rollout restart deployment/traceroute-backend -n $NAMESPACE
 
 echo ""
 echo "Waiting for Portfolio app to be ready..."
 kubectl wait --for=condition=available --timeout=300s deployment/portfolio -n $NAMESPACE
 
 echo ""
-echo "Verifying service has correct NodePort..."
-ACTUAL_NODEPORT=$(kubectl get svc portfolio -n $NAMESPACE -o jsonpath='{.spec.ports[0].nodePort}')
-if [ "$ACTUAL_NODEPORT" != "$PORTFOLIO_NODEPORT" ]; then
-    echo "ERROR: Service NodePort is $ACTUAL_NODEPORT, expected $PORTFOLIO_NODEPORT"
+echo "Waiting for Traceroute Backend to be ready..."
+kubectl wait --for=condition=available --timeout=300s deployment/traceroute-backend -n $NAMESPACE
+
+echo ""
+echo "Verifying Portfolio service has correct NodePort..."
+ACTUAL_PORTFOLIO_NODEPORT=$(kubectl get svc portfolio -n $NAMESPACE -o jsonpath='{.spec.ports[0].nodePort}')
+if [ "$ACTUAL_PORTFOLIO_NODEPORT" != "$PORTFOLIO_NODEPORT" ]; then
+    echo "ERROR: Portfolio service NodePort is $ACTUAL_PORTFOLIO_NODEPORT, expected $PORTFOLIO_NODEPORT"
     echo "The portfolio-service.yaml may not have the fixed nodePort configured correctly."
     exit 1
 fi
 
-echo "✅ Service NodePort is correct: $PORTFOLIO_NODEPORT"
+echo "✅ Portfolio service NodePort is correct: $PORTFOLIO_NODEPORT"
+
+echo ""
+echo "Verifying Traceroute Backend service has correct NodePort..."
+ACTUAL_TRACEROUTE_NODEPORT=$(kubectl get svc traceroute-backend -n $NAMESPACE -o jsonpath='{.spec.ports[0].nodePort}')
+if [ "$ACTUAL_TRACEROUTE_NODEPORT" != "$TRACEROUTE_NODEPORT" ]; then
+    echo "ERROR: Traceroute Backend service NodePort is $ACTUAL_TRACEROUTE_NODEPORT, expected $TRACEROUTE_NODEPORT"
+    echo "The traceroute-backend-service.yaml may not have the fixed nodePort configured correctly."
+    exit 1
+fi
+
+echo "✅ Traceroute Backend service NodePort is correct: $TRACEROUTE_NODEPORT"
 
 echo ""
 echo "Updating Cloudflare tunnel configuration..."
 if [ -f "$CLOUDFLARE_CONFIG" ]; then
     # Backup current config
     sudo cp "$CLOUDFLARE_CONFIG" "$CLOUDFLARE_CONFIG.backup.$(date +%Y%m%d_%H%M%S)"
-    
-    # Update the NodePort in the config for portfolio
-    sudo sed -i "s|http://$CONTROL_PLANE_IP:[0-9]*|http://$CONTROL_PLANE_IP:$PORTFOLIO_NODEPORT|g" "$CLOUDFLARE_CONFIG"
-    
-    echo "✅ Cloudflare config updated to use NodePort $PORTFOLIO_NODEPORT"
-    
+
+    # Update the NodePorts in the config for both services
+    # First update portfolio (might need to be more specific if there are multiple entries)
+    sudo sed -i "s|http://$CONTROL_PLANE_IP:[0-9]*/|http://$CONTROL_PLANE_IP:$PORTFOLIO_NODEPORT/|g" "$CLOUDFLARE_CONFIG"
+
+    echo "✅ Cloudflare config updated to use Portfolio NodePort $PORTFOLIO_NODEPORT and Traceroute NodePort $TRACEROUTE_NODEPORT"
+
     # Restart cloudflared
     echo "Restarting cloudflared service..."
     if sudo -n systemctl restart cloudflared 2>/dev/null; then
@@ -61,25 +85,30 @@ if [ -f "$CLOUDFLARE_CONFIG" ]; then
         echo "Or manually restart cloudflared now:"
         echo "  sudo systemctl restart cloudflared"
         echo ""
-        echo "The portfolio app is deployed but Cloudflare tunnel may need manual restart."
+        echo "Both services are deployed but Cloudflare tunnel may need manual restart."
     fi
 else
     echo "WARNING: Cloudflare config not found at $CLOUDFLARE_CONFIG"
     echo "Please manually update your Cloudflare tunnel to use:"
-    echo "  https://$CONTROL_PLANE_IP:$PORTFOLIO_NODEPORT"
+    echo "  Portfolio: https://$CONTROL_PLANE_IP:$PORTFOLIO_NODEPORT"
+    echo "  Traceroute: https://$CONTROL_PLANE_IP:$TRACEROUTE_NODEPORT"
 fi
 
 echo ""
 echo "========================================="
-echo "Portfolio Deployment Complete!"
+echo "Portfolio & Traceroute Backend Deployment Complete!"
 echo "========================================="
 echo ""
 echo "Service Details:"
-echo "  NodePort: $PORTFOLIO_NODEPORT"
+echo "  Portfolio NodePort: $PORTFOLIO_NODEPORT"
+echo "  Traceroute NodePort: $TRACEROUTE_NODEPORT"
 echo "  Control Plane IP: $CONTROL_PLANE_IP"
-echo "  External URL: https://$CONTROL_PLANE_IP:$PORTFOLIO_NODEPORT"
+echo ""
+echo "External URLs:"
+echo "  Portfolio: https://$CONTROL_PLANE_IP:$PORTFOLIO_NODEPORT"
+echo "  Traceroute: https://$CONTROL_PLANE_IP:$TRACEROUTE_NODEPORT"
 echo ""
 echo "Check status with:"
-echo "  kubectl get pods -n $NAMESPACE -l app=portfolio"
-echo "  kubectl get svc -n $NAMESPACE -l app=portfolio"
+echo "  kubectl get pods -n $NAMESPACE"
+echo "  kubectl get svc -n $NAMESPACE"
 echo ""

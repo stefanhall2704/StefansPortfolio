@@ -1,0 +1,27 @@
+[Unit]
+Description=Cloudflare Tunnel for Traceroute Backend
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=cloudflared
+Group=cloudflared
+ExecStart=/usr/local/bin/cloudflared tunnel run traceroute-backend-tunnel
+Restart=always
+RestartSec=5
+Environment=TUNNEL_CRED_FILE=/etc/cloudflared/traceroute-tunnel.json
+
+# Security settings
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/etc/cloudflared
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+
+[Install]
+WantedBy=multi-user.target
+
