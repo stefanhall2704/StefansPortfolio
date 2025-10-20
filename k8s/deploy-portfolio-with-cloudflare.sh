@@ -7,20 +7,23 @@ echo "========================================="
 echo ""
 
 # Configuration
-PORTFOLIO_NODEPORT=31056
-TRACEROUTE_NODEPORT=31653
+PORTFOLIO_NODEPORT=31057
+TRACEROUTE_NODEPORT=31654
 CONTROL_PLANE_IP="192.168.1.102"
 CLOUDFLARE_CONFIG="/etc/cloudflared/config.yml"
 NAMESPACE="stefansportfolio"
 
+echo "Creating namespace and shared resources..."
+kubectl apply -f k8s/shared/namespace.yaml
+kubectl apply -f k8s/shared/dns-config.yaml
+
+echo ""
 echo "Deploying Portfolio app..."
-# Deploy the portfolio app using local k8s files
 kubectl apply -f k8s/portfolio/portfolio-deployment.yaml
 kubectl apply -f k8s/portfolio/portfolio-service.yaml
 
 echo ""
 echo "Deploying Traceroute Backend..."
-# Deploy the traceroute backend
 kubectl apply -f k8s/traceroute/traceroute-backend-deployment.yaml
 kubectl apply -f k8s/traceroute/traceroute-backend-service.yaml
 
@@ -67,8 +70,10 @@ if [ -f "$CLOUDFLARE_CONFIG" ]; then
     sudo cp "$CLOUDFLARE_CONFIG" "$CLOUDFLARE_CONFIG.backup.$(date +%Y%m%d_%H%M%S)"
 
     # Update the NodePorts in the config for both services
-    # First update portfolio (might need to be more specific if there are multiple entries)
-    sudo sed -i "s|http://$CONTROL_PLANE_IP:[0-9]*/|http://$CONTROL_PLANE_IP:$PORTFOLIO_NODEPORT/|g" "$CLOUDFLARE_CONFIG"
+    # Update portfolio entry
+    sudo sed -i "s|http://$CONTROL_PLANE_IP:31056|http://$CONTROL_PLANE_IP:$PORTFOLIO_NODEPORT|g" "$CLOUDFLARE_CONFIG"
+    # Update traceroute entry
+    sudo sed -i "s|http://$CONTROL_PLANE_IP:31653|http://$CONTROL_PLANE_IP:$TRACEROUTE_NODEPORT|g" "$CLOUDFLARE_CONFIG"
 
     echo "✅ Cloudflare config updated to use Portfolio NodePort $PORTFOLIO_NODEPORT and Traceroute NodePort $TRACEROUTE_NODEPORT"
 

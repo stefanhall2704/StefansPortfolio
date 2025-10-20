@@ -12,6 +12,6 @@ spec:
   - name: websocket
     port: 8080
     targetPort: 8080
-    nodePort: 31653
+    nodePort: 31654
     protocol: TCP
   type: NodePort
