@@ -1,14 +1,30 @@
-name: Deploy Portfolio & Traceroute Backend (SSH Method)
+name: Build & Deploy (self-hosted runner)
+
+# Build + push run on GitHub's own runners (isolated). Only the deploy job runs on the homelab runner,
+# which talks to the cluster with a namespace-scoped ServiceAccount (see kubernetes/ci/README.md).
+# No SSH: nothing needs to reach into the machine from the internet.
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main]
   workflow_dispatch:
     inputs:
       image_tag:
-        description: 'Image tag to deploy'
+        description: 'Extra image tag to push'
         required: false
         default: 'latest'
+      dry_run:
+        description: 'Deploy job only validates (server-side dry run); changes nothing'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.workflow }}
+  cancel-in-progress: false
 
 env:
   REGISTRY: docker.io
@@ -17,98 +33,119 @@ env:
   NAMESPACE: stefansportfolio
 
 jobs:
-  build-and-deploy:
+  build:
+    name: Build and push images
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 30
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Log in to Docker Hub
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-    - name: Extract metadata for portfolio
-      id: meta-portfolio
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.PORTFOLIO_IMAGE_NAME }}
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable={{is_default_branch}}
-          type=raw,value=${{ github.event.inputs.image_tag || 'latest' }}
+      - name: Metadata (portfolio)
+        id: meta-portfolio
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.PORTFOLIO_IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ github.event.inputs.image_tag || 'latest' }},enable={{is_default_branch}}
 
-    - name: Build and push portfolio Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: Dockerfile
-        platforms: linux/amd64
-        push: true
-        tags: ${{ steps.meta-portfolio.outputs.tags }}
-        labels: ${{ steps.meta-portfolio.outputs.labels }}
+      - name: Build and push portfolio image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta-portfolio.outputs.tags }}
+          labels: ${{ steps.meta-portfolio.outputs.labels }}
 
-    - name: Extract metadata for traceroute backend
-      id: meta-traceroute
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.TRACEROUTE_IMAGE_NAME }}
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable={{is_default_branch}}
-          type=raw,value=${{ github.event.inputs.image_tag || 'latest' }}
+      - name: Metadata (traceroute-backend)
+        id: meta-traceroute
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.TRACEROUTE_IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ github.event.inputs.image_tag || 'latest' }},enable={{is_default_branch}}
 
-    - name: Build and push traceroute backend Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: Dockerfile.backend
-        platforms: linux/amd64
-        push: true
-        tags: ${{ steps.meta-traceroute.outputs.tags }}
-        labels: ${{ steps.meta-traceroute.outputs.labels }}
+      - name: Build and push traceroute-backend image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        with:
+          context: .
+          file: Dockerfile.backend
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta-traceroute.outputs.tags }}
+          labels: ${{ steps.meta-traceroute.outputs.labels }}
 
-    - name: Deploy via SSH
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          #!/bin/bash
-          set -e
+  deploy:
+    name: Deploy to the homelab cluster
+    needs: build
+    # main only (the `homelab` environment enforces this too); a dry run may also come from the migration branch
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, linux, x64, homelab]
+    environment: homelab
+    timeout-minutes: 20
+    env:
+      DRY_RUN: ${{ github.event.inputs.dry_run == 'true' && 'true' || 'false' }}
+    steps:
+      - name: Checkout (manifests only)
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
-          cd /home/stefan/Documents/Personal/StefansPortfolio
+      - name: Who am I / what can I do
+        run: |
+          kubectl auth whoami 2>/dev/null || true
+          kubectl get deploy -n "$NAMESPACE" -o name
 
-          # Pull latest changes
-          git pull origin main
+      - name: Apply manifests
+        run: |
+          set -euo pipefail
+          mode=""; [ "$DRY_RUN" = true ] && mode="--dry-run=server"
+          kubectl apply $mode -f k8s/shared/dns-config.yaml
+          kubectl apply $mode -f k8s/portfolio/portfolio-deployment.yaml -f k8s/portfolio/portfolio-service.yaml
+          kubectl apply $mode -f k8s/traceroute/traceroute-backend-deployment.yaml -f k8s/traceroute/traceroute-backend-service.yaml
 
-          # Deploy both portfolio and traceroute backend
-          chmod +x k8s/deploy-portfolio-with-cloudflare.sh
-          ./k8s/deploy-portfolio-with-cloudflare.sh
+      - name: Roll out the new images
+        if: env.DRY_RUN != 'true'
+        run: |
+          set -euo pipefail
+          # imagePullPolicy is Always, so a restart pulls the freshly pushed :latest
+          kubectl rollout restart deployment/portfolio deployment/traceroute-backend -n "$NAMESPACE"
+          # the same two services also run in the hallphotography namespace (they serve public traffic)
+          kubectl rollout restart deployment/portfolio deployment/traceroute-backend -n hallphotography
+          for ns in "$NAMESPACE" hallphotography; do
+            for d in portfolio traceroute-backend; do
+              kubectl rollout status "deployment/$d" -n "$ns" --timeout=300s
+            done
+          done
 
-          # Verify deployments
-          echo "✅ Portfolio app deployed successfully!"
-          echo "Portfolio Image: ${{ env.REGISTRY }}/${{ env.PORTFOLIO_IMAGE_NAME }}:latest"
-          kubectl get pods -n ${{ env.NAMESPACE }} -l app=portfolio
-
-          echo ""
-          echo "✅ Traceroute backend deployed successfully!"
-          echo "Traceroute Image: ${{ env.REGISTRY }}/${{ env.TRACEROUTE_IMAGE_NAME }}:latest"
-          kubectl get pods -n ${{ env.NAMESPACE }} -l app=traceroute-backend
-
-    - name: Verify deployment
-      run: |
-        echo "✅ Portfolio & Traceroute Backend deployment completed!"
-        echo "Portfolio Image: ${{ env.REGISTRY }}/${{ env.PORTFOLIO_IMAGE_NAME }}:latest"
-        echo "Traceroute Image: ${{ env.REGISTRY }}/${{ env.TRACEROUTE_IMAGE_NAME }}:latest"
-        echo "Namespace: ${{ env.NAMESPACE }}"
+      - name: Check the services
+        if: env.DRY_RUN != 'true'
+        run: |
+          set -euo pipefail
+          sp=$(kubectl get svc portfolio -n "$NAMESPACE" -o jsonpath='{.spec.ports[0].nodePort}')
+          tr=$(kubectl get svc traceroute-backend -n "$NAMESPACE" -o jsonpath='{.spec.ports[0].nodePort}')
+          [ "$sp" = 31057 ] || { echo "portfolio NodePort is $sp, expected 31057"; exit 1; }
+          [ "$tr" = 31654 ] || { echo "traceroute-backend NodePort is $tr, expected 31654"; exit 1; }
+          # end to end through Cloudflare
+          curl -fsS --retry 6 --retry-delay 5 --retry-connrefused -o /dev/null https://portfolio.stefan-sre.com/
+          curl -fsS --retry 6 --retry-delay 5 --retry-connrefused -o /dev/null https://traceroute.stefan-sre.com/health
+          echo "portfolio + traceroute-backend are serving"
