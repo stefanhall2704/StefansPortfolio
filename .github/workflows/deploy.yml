@@ -37,6 +37,9 @@ jobs:
     name: Build and push images
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    outputs:
+      portfolio_digest: ${{ steps.build-portfolio.outputs.digest }}
+      traceroute_digest: ${{ steps.build-traceroute.outputs.digest }}
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -64,6 +67,7 @@ jobs:
             type=raw,value=${{ github.event.inputs.image_tag || 'latest' }},enable={{is_default_branch}}
 
       - name: Build and push portfolio image
+        id: build-portfolio
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: .
@@ -85,6 +89,7 @@ jobs:
             type=raw,value=${{ github.event.inputs.image_tag || 'latest' }},enable={{is_default_branch}}
 
       - name: Build and push traceroute-backend image
+        id: build-traceroute
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: .
@@ -104,6 +109,8 @@ jobs:
     timeout-minutes: 20
     env:
       DRY_RUN: ${{ github.event.inputs.dry_run == 'true' && 'true' || 'false' }}
+      PORTFOLIO_DIGEST: ${{ needs.build.outputs.portfolio_digest }}
+      TRACEROUTE_DIGEST: ${{ needs.build.outputs.traceroute_digest }}
     steps:
       - name: Checkout (manifests only)
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -135,6 +142,15 @@ jobs:
             for d in portfolio traceroute-backend; do
               kubectl rollout status "deployment/$d" -n "$ns" --timeout=300s
             done
+          done
+
+      - name: Verify the running pods are the images this commit built
+        if: env.DRY_RUN != 'true'
+        run: |
+          set -euo pipefail
+          for ns in "$NAMESPACE" hallphotography; do
+            .github/scripts/verify-image.sh "$ns" portfolio "$PORTFOLIO_DIGEST"
+            .github/scripts/verify-image.sh "$ns" traceroute-backend "$TRACEROUTE_DIGEST"
           done
 
       - name: Check the services
