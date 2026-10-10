@@ -2,16 +2,14 @@ tunnel: traceroute-backend-tunnel
 credentials-file: /etc/cloudflared/traceroute-tunnel.json
 
 ingress:
-  # Traceroute backend - connect to LoadBalancer external IP
   - hostname: traceroute.stefan-sre.com
-    service: http://192.168.1.102:8080
+    service: http://127.0.0.1:80      # Traefik (host-routed); NOT a LAN IP or :8080 (shared with a Docker container)
     originRequest:
-      http2Origin: true
-      originServerName: traceroute.stefan-sre.com
-
+      httpHostHeader: traceroute.stefan-sre.com
   # Health check endpoint
   - hostname: health-traceroute.stefan-sre.com
-    service: http://192.168.1.102:8080
-
+    service: http://127.0.0.1:80      # Traefik (host-routed); NOT a LAN IP or :8080 (shared with a Docker container)
+    originRequest:
+      httpHostHeader: traceroute.stefan-sre.com
   # Catch-all rule
   - service: http_status:404

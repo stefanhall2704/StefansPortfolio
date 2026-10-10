@@ -7,7 +7,7 @@ Wants=network.target
 Type=simple
 User=cloudflared
 Group=cloudflared
-ExecStart=/usr/local/bin/cloudflared tunnel run traceroute-backend-tunnel
+ExecStart=/usr/bin/cloudflared tunnel --config /etc/cloudflared/traceroute-tunnel.yaml run traceroute-backend-tunnel
 Restart=always
 RestartSec=5
 Environment=TUNNEL_CRED_FILE=/etc/cloudflared/traceroute-tunnel.json
