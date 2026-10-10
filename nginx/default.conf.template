@@ -25,6 +25,13 @@ server {
         index  index.html index.htm;
     }
 
+    # the commit this image was built from; never cached so it always reflects what is serving
+    location = /version.txt {
+        root   /usr/share/nginx/html;
+        default_type text/plain;
+        add_header Cache-Control "no-store" always;
+    }
+
     error_page   500 502 503 504  /50x.html;
     location = /50x.html {
         root   /usr/share/nginx/html;

@@ -65,6 +65,9 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+// commit is stamped in at build time (-ldflags -X main.commit=<sha>) and reported at GET /
+var commit = "dev"
+
 // Rate limiter: ~10 requests per 15 minutes, tracked PER CLIENT (see ratelimit.go)
 var limiters = newLimiterSetFromEnv()
 
@@ -106,6 +109,7 @@ func main() {
 		c.JSON(200, gin.H{
 			"service":   "traceroute-backend",
 			"version":   "1.0",
+			"commit":    commit,
 			"status":    "running",
 			"endpoints": []string{"/health", "/api/traceroute", "/ws"},
 			"timestamp": time.Now().UTC().Format(time.RFC3339),

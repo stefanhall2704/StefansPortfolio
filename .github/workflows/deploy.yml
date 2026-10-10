@@ -72,6 +72,7 @@ jobs:
         with:
           context: .
           file: Dockerfile
+          build-args: GIT_SHA=${{ github.sha }}
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta-portfolio.outputs.tags }}
@@ -94,6 +95,7 @@ jobs:
         with:
           context: .
           file: Dockerfile.backend
+          build-args: GIT_SHA=${{ github.sha }}
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta-traceroute.outputs.tags }}

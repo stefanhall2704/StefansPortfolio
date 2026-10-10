@@ -30,6 +30,10 @@ ENV NGINX_PORT=80 \
     OTEL_NGINX_SERVICE=portfolio
 
 # Expose port 80
+# Which commit this image was built from (CI passes --build-arg GIT_SHA=<sha>); served at /version.txt
+ARG GIT_SHA=unknown
+RUN printf '%s\n' "$GIT_SHA" > /usr/share/nginx/html/version.txt
+
 EXPOSE 80
 
 # Start nginx
