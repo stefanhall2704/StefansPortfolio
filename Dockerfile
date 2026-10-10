@@ -16,14 +16,18 @@ COPY . .
 # Build the React app for production
 RUN npm run build
 
-# Production stage with nginx
-FROM nginx:alpine
+# Production stage with nginx (the -otel variant ships the OpenTelemetry module)
+FROM nginx:alpine-otel
 
 # Copy built React app from builder stage
 COPY --from=builder /app/build /usr/share/nginx/html
 
-# Copy custom nginx config (optional)
-# COPY nginx.conf /etc/nginx/nginx.conf
+# nginx config: stock config + OpenTelemetry. The server block is a template (envsubst at container start).
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
+COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
+ENV NGINX_PORT=80 \
+    OTEL_NGINX_ENDPOINT=otel-collector.monitoring.svc.cluster.local:4317 \
+    OTEL_NGINX_SERVICE=portfolio
 
 # Expose port 80
 EXPOSE 80

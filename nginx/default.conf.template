@@ -1,0 +1,32 @@
+# Rendered at container start by the nginx image's envsubst step into /etc/nginx/conf.d/default.conf.
+# Variables (defaults are set in the Dockerfile):  NGINX_PORT  OTEL_NGINX_ENDPOINT  OTEL_NGINX_SERVICE
+
+# ---- OpenTelemetry: spans go to the in-cluster collector (-> Tempo), span metrics feed the Grafana dashboards ----
+otel_exporter {
+    endpoint ${OTEL_NGINX_ENDPOINT};
+    interval 5s;
+    batch_size 512;
+    batch_count 4;
+}
+otel_service_name ${OTEL_NGINX_SERVICE};
+otel_trace_context propagate;      # continue a trace started by a caller (traceparent header)
+
+server {
+    listen       ${NGINX_PORT};
+    server_name  localhost;
+
+    otel_trace $portfolio_trace;      # map in nginx.conf: everything except kubelet probes
+    # names the span-metrics dimensions use
+    otel_span_attr http.request.method       $request_method;
+    otel_span_attr http.response.status_code $status;
+
+    location / {
+        root   /usr/share/nginx/html;
+        index  index.html index.htm;
+    }
+
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+}
