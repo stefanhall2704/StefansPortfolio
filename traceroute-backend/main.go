@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"os/signal"
+	"syscall"
 	"regexp"
 	"strconv"
 	"strings"
@@ -17,7 +19,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/time/rate"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type TracerouteRequest struct {
@@ -60,17 +65,24 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-// Rate limiter: 10 requests per 15 minutes per IP
-var rateLimiter = rate.NewLimiter(rate.Every(15*time.Minute), 10)
+// Rate limiter: ~10 requests per 15 minutes, tracked PER CLIENT (see ratelimit.go)
+var limiters = newLimiterSetFromEnv()
 
 func main() {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 	logrus.SetLevel(logrus.InfoLevel)
 
+	shutdownTelemetry, tracing := initTelemetry(context.Background())
+	limiters.startJanitor()
+	logrus.WithFields(logrus.Fields{"tracing": tracing, "service": serviceName()}).Info("telemetry configured")
+
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 
-	// Middleware
+	// Middleware (tracing first so every later log line can carry the trace id; health probes are not traced)
+	r.Use(otelgin.Middleware(serviceName(), otelgin.WithGinFilter(func(c *gin.Context) bool {
+		return c.Request.URL.Path != "/health"
+	})))
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 	r.Use(cors.New(cors.Config{
@@ -111,8 +123,23 @@ func main() {
 		port = "8080"
 	}
 
-	logrus.WithField("port", port).Info("Starting traceroute server")
-	logrus.Fatal(r.Run(":" + port))
+	srv := &http.Server{Addr: ":" + port, Handler: r}
+	go func() {
+		logrus.WithField("port", port).Info("Starting traceroute server")
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logrus.Fatal(err)
+		}
+	}()
+
+	// Graceful shutdown: let in-flight requests finish and flush buffered spans before the pod exits.
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+	<-stop
+	logrus.Info("Shutting down")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_ = srv.Shutdown(ctx)
+	_ = shutdownTelemetry(ctx)
 }
 
 func getAllowedOrigins() []string {
@@ -125,9 +152,12 @@ func getAllowedOrigins() []string {
 
 func handleTracerouteREST(c *gin.Context) {
 	clientIP := c.ClientIP()
+	ctx := c.Request.Context()
 
-	// Rate limiting
-	if !rateLimiter.Allow() {
+	// Rate limiting (per client)
+	if !limiters.allow(clientIP) {
+		trace.SpanFromContext(ctx).SetAttributes(attribute.Bool("ratelimit.rejected", true))
+		c.Header("Retry-After", fmt.Sprintf("%d", int(limiters.retryAfter().Seconds())))
 		c.JSON(429, gin.H{"error": "Rate limit exceeded. Try again later."})
 		return
 	}
@@ -151,16 +181,16 @@ func handleTracerouteREST(c *gin.Context) {
 		req.Timeout = 5
 	}
 
-	logrus.WithFields(logrus.Fields{
+	logrus.WithFields(logFields(ctx, logrus.Fields{
 		"target":  req.Target,
 		"client":  clientIP,
 		"maxHops": req.MaxHops,
 		"timeout": req.Timeout,
-	}).Info("Starting traceroute")
+	})).Info("Starting traceroute")
 
-	result, err := executeTraceroute(req.Target, req.MaxHops, req.Timeout, nil)
+	result, err := executeTraceroute(ctx, req.Target, req.MaxHops, req.Timeout, nil)
 	if err != nil {
-		logrus.WithError(err).Error("Traceroute failed")
+		logrus.WithFields(logFields(ctx, nil)).WithError(err).Error("Traceroute failed")
 		c.JSON(500, gin.H{"error": "Traceroute failed: " + err.Error()})
 		return
 	}
@@ -210,8 +240,8 @@ func handleWebSocket(c *gin.Context) {
 			break
 		}
 
-		// Rate limiting for WebSocket
-		if !rateLimiter.Allow() {
+		// Rate limiting for WebSocket (per client)
+		if !limiters.allow(clientIP) {
 			conn.WriteJSON(ProgressMessage{
 				Type:    "error",
 				Message: "Rate limit exceeded. Try again later.",
@@ -235,12 +265,12 @@ func handleWebSocket(c *gin.Context) {
 			req.Timeout = 5
 		}
 
-		logrus.WithFields(logrus.Fields{
+		logrus.WithFields(logFields(c.Request.Context(), logrus.Fields{
 			"target":  req.Target,
 			"client":  clientIP,
 			"maxHops": req.MaxHops,
 			"timeout": req.Timeout,
-		}).Info("Starting WebSocket traceroute")
+		})).Info("Starting WebSocket traceroute")
 
 		progressCallback := func(progress float64, message string, hop *Hop) {
 			msg := ProgressMessage{
@@ -254,7 +284,7 @@ func handleWebSocket(c *gin.Context) {
 			conn.WriteJSON(msg)
 		}
 
-		result, err := executeTraceroute(req.Target, req.MaxHops, req.Timeout, progressCallback)
+		result, err := executeTraceroute(c.Request.Context(), req.Target, req.MaxHops, req.Timeout, progressCallback)
 		if err != nil {
 			conn.WriteJSON(ProgressMessage{
 				Type:    "error",
@@ -280,14 +310,31 @@ func isValidTarget(target string) bool {
 	return matched && len(target) <= 253
 }
 
-func executeTraceroute(target string, maxHops, timeout int, progressCallback func(float64, string, *Hop)) (TracerouteResult, error) {
+func executeTraceroute(parent context.Context, target string, maxHops, timeout int, progressCallback func(float64, string, *Hop)) (res TracerouteResult, err error) {
 	result := TracerouteResult{
 		Target:    target,
 		Hops:      []Hop{},
 		Completed: false,
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout*maxHops)*time.Second)
+	// One span around the actual work, so a slow request shows where the time went.
+	parent, span := tracer.Start(parent, "traceroute.execute")
+	span.SetAttributes(
+		attribute.String("traceroute.target", target),
+		attribute.Int("traceroute.max_hops", maxHops),
+		attribute.Int("traceroute.timeout_s", timeout),
+	)
+	defer func() {
+		span.SetAttributes(attribute.Int("traceroute.hops", res.TotalHops), attribute.Bool("traceroute.completed", res.Completed))
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+		}
+		span.End()
+	}()
+
+	// Bound by the work budget, and by the caller going away (client disconnect / pod shutdown).
+	ctx, cancel := context.WithTimeout(parent, time.Duration(timeout*maxHops)*time.Second)
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, "traceroute", "-n", "-m", strconv.Itoa(maxHops), "-w", strconv.Itoa(timeout), target)

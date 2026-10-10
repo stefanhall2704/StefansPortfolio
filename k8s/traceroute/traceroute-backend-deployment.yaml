@@ -38,6 +38,23 @@ spec:
           value: "true"
         - name: PORT
           value: "8080"
+        # --- OpenTelemetry: traces go to the in-cluster collector -> Tempo; dashboards read the span metrics ---
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://otel-collector.monitoring.svc.cluster.local:4317"
+        - name: OTEL_SERVICE_NAME
+          value: "traceroute-backend"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: "k8s.pod.name=$(POD_NAME),k8s.namespace.name=$(POD_NAMESPACE)"
+        - name: RATE_LIMIT_BURST
+          value: "10"        # per client; refills one request every RATE_LIMIT_REFILL (default 90s)
         resources:
           requests:
             memory: "64Mi"
